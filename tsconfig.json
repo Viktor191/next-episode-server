@@ -1,0 +1,33 @@
+{
+  "ts-node": {
+    "transpileOnly": false,
+    "require": ["tsconfig-paths/register"],
+    "files": true,
+
+    "compilerOptions": {}
+  },
+  "compilerOptions": {
+    "baseUrl": ".",
+    "lib": ["esnext"],
+    "paths": {
+      "controllers/*": ["./src/controllers/*"],
+      "helpers/*": ["./src/helpers/*"],
+      "constants/*": ["./src/constants/*"],
+      "data/*": ["./src/data/*"],
+      "models/*": ["./src/models/*"],
+      "routes/*": ["./src/routes/*"],
+      "config/*": ["./src/config/*"],
+      "middlewares/*": ["./src/middlewares/*"],
+      "types/*": ["./src/types/*"]
+    },
+    "target": "es6",
+    "module": "commonjs",
+    "outDir": "./dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
+}
