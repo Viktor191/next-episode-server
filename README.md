@@ -1,1 +1,1 @@
-# server NExT
+# server NextEpisode
