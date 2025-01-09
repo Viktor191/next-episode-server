@@ -1,98 +1,101 @@
 import { Router, Request, Response } from 'express';
-import { SomeData, Show } from '../models/models';
 import { authenticateToken, AuthenticatedRequest } from '../middlewares/authenticateToken';
+import { Show } from '../models/models';
 
 const router = Router();
 
 // Create: POST (Добавление новой записи)
 router.post('/add', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const { name, age } = req.body;
+        const { title, ids } = req.body;
 
-        if (!name || !age) {
-            res.status(400).json({ error: 'Имя и возраст обязательны' });
+        if (!title || !Array.isArray(ids) || ids.length === 0) {
+            res.status(400).json({ error: 'Необходимо указать название шоу и массив идентификаторов.' });
+            return;
         }
 
-        const newData = new SomeData({ name, age });
-        await newData.save();
+        const newShow = new Show({ title, ids });
+        await newShow.save();
 
-        res.status(201).json({ message: 'Данные добавлены', id: newData._id });
+        res.status(201).json({ message: 'Шоу добавлено', id: newShow._id });
     } catch (error: any) {
-        console.error('Ошибка при добавлении данных:', error.message);
+        console.error('Ошибка при добавлении шоу:', error.message);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
 
-// Read: GET (Получение всех данных)
+// Получение всех шоу
 router.get('/all', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const allData = await SomeData.find();
-        res.status(200).json(allData);
+        const shows = await Show.find();
+        res.status(200).json(shows);
     } catch (error: any) {
-        console.error('Ошибка при получении данных:', error.message);
+        console.error('Ошибка при получении шоу:', error.message);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
 
-// Read: GET (Получение данных по ID)
+// Получение одного шоу по ID
 router.get('/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const data = await SomeData.findById(id);
 
-        if (!data) {
-            res.status(404).json({ error: 'Данные не найдены' });// return;
+        const show = await Show.findById(id);
+        if (!show) {
+            res.status(404).json({ error: 'Шоу не найдено' });
+            return;
         }
 
-        res.status(200).json(data);
+        res.status(200).json(show);
     } catch (error: any) {
-        console.error('Ошибка при получении данных:', error.message);
+        console.error('Ошибка при получении шоу:', error.message);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
 
-// Update: PUT (Обновление данных)
+// Обновление шоу по ID
 router.put('/update/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
-        const { name, age } = req.body;
+        const { title, ids } = req.body;
 
-        if (!name && !age) {
-            res.status(400).json({ error: 'Не указаны данные для обновления' });
+        if (!title && !ids) {
+            res.status(400).json({ error: 'Не указаны данные для обновления.' });
+            return;
         }
 
-        const updatedData = await SomeData.findByIdAndUpdate(
+        const updatedShow = await Show.findByIdAndUpdate(
             id,
-            { name, age },
-            { new: true } // Возвращает обновлённый документ
+            { title, ids },
+            { new: true, runValidators: true } // Возвращает обновлённый документ и выполняет валидацию
         );
 
-        if (!updatedData) {
-            res.status(404).json({ error: 'Данные не найдены для обновления' });
+        if (!updatedShow) {
+            res.status(404).json({ error: 'Шоу не найдено для обновления' });
+            return;
         }
 
-        res.status(200).json({ message: 'Данные обновлены', data: updatedData });
+        res.status(200).json({ message: 'Шоу обновлено', data: updatedShow });
     } catch (error: any) {
-        console.error('Ошибка при обновлении данных:', error.message);
+        console.error('Ошибка при обновлении шоу:', error.message);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
 
-// Delete: DELETE (Удаление данных)
+// Удаление шоу по ID
 router.delete('/delete/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const { id } = req.params;
 
-        const deletedData = await SomeData.findByIdAndDelete(id);
-
-        if (!deletedData) {
-            res.status(404).json({ error: 'Данные не найдены для удаления' });
+        const deletedShow = await Show.findByIdAndDelete(id);
+        if (!deletedShow) {
+            res.status(404).json({ error: 'Шоу не найдено для удаления' });
             return;
         }
 
-        res.status(200).json({ message: 'Данные удалены', data: deletedData });
+        res.status(200).json({ message: 'Шоу удалено', data: deletedShow });
     } catch (error: any) {
-        console.error('Ошибка при удалении данных:', error.message);
+        console.error('Ошибка при удалении шоу:', error.message);
         res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
