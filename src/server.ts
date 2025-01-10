@@ -1,17 +1,8 @@
 import dotenv from 'dotenv';
-import express, {
-    Request,
-    Response,
-    NextFunction,
-    Application
-} from 'express';
-import { MongoClient, ObjectId, Collection } from 'mongodb';
+import express, { Application } from 'express';
 import cors from 'cors';
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import bcryptjs from 'bcryptjs';
 import routes from "./routes";
 import mongoose from "mongoose";
-
 
 // Загружаем переменные окружения из .env
 dotenv.config();
@@ -34,9 +25,10 @@ mongoose
     .catch((error) => {
         console.error('Error connecting to MongoDB', error);
     });
+
 app.use(cors());
 app.use(express.json());
-app.use('/api',routes);
+app.use('/api', routes);
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
