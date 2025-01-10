@@ -11,19 +11,7 @@ const UserSchema = new Schema<IUser>({ // Схема для модели пол�
 });
 
 // Модель пользователя в MongoDB
-export const User = mongoose.model<IUser>('User', UserSchema, 'users_reg');
-
-export interface ISomeData extends Document {
-    name: string;
-    age: number;
-}
-
-const SomeDataSchema = new Schema<ISomeData>({
-    name: { type: String, required: true },
-    age: { type: Number, required: true },
-});
-
-export const SomeData = mongoose.model<ISomeData>('SomeData', SomeDataSchema, 'users_info');
+export const User = mongoose.model<IUser>('User', UserSchema, 'users');
 
 export interface IShow extends Document {
     title: string;
