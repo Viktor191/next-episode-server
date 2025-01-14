@@ -1,5 +1,5 @@
-import {Request, Response} from "express";
-import {User} from "models/userModel"
+import { Request, Response } from "express";
+import { UserModel } from "models/userModel"
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -12,14 +12,14 @@ export const register =  async (req: Request<{}, {}, { username: string; passwor
             return;
         }
 
-        const existingUser = await User.findOne({ username });
+        const existingUser = await UserModel.findOne({ username });
         if (existingUser) {
             res.status(400).json({ error: 'Пользователь с таким именем уже существует' });
             return;
         }
 
         const hashedPassword = await bcryptjs.hash(password, 10);
-        const newUser = new User({ username, password: hashedPassword });
+        const newUser = new UserModel({ username, password: hashedPassword });
         await newUser.save();
 
         res.status(201).json({ message: 'Пользователь зарегистрирован' });
@@ -35,7 +35,7 @@ export const login = async (req: Request<{}, {}, { username: string; password: s
     try {
         const { username, password } = req.body;
 
-        const user = await User.findOne({ username });
+        const user = await UserModel.findOne({ username });
         if (!user) {
             res.status(400).json({ error: 'Неверное имя пользователя или пароль' });
             return;

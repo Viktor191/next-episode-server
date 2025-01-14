@@ -1,2 +1,2 @@
 import {Request, Response} from "express";
-import {Show} from "models/showModel";
+import {ShowModel} from "models/showModel";

@@ -1,7 +1,6 @@
-import {Document, Schema} from "mongoose";
-import mongoose from "mongoose";
+import { Document, Schema, model } from "mongoose";
 
-export interface IShow extends Document {
+interface IShow extends Document {
     title: string;
     ids: string[];
 }
@@ -11,4 +10,4 @@ const ShowSchema = new Schema<IShow>({
     ids: { type: [String], required: true },
 });
 
-export const Show = mongoose.model<IShow>('Show', ShowSchema, 'shows');
+export const ShowModel = model<IShow>('ShowModel', ShowSchema, 'shows');
