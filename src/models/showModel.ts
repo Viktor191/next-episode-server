@@ -12,4 +12,3 @@ const ShowSchema = new Schema<IShow>({
 });
 
 export const Show = mongoose.model<IShow>('Show', ShowSchema, 'shows');
-
