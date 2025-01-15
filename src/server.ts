@@ -3,7 +3,6 @@ import express, {Application} from 'express';
 import cors from 'cors';
 import routes from "./routes";
 import mongoose from "mongoose";
-import {findByID} from "controllers/externalApiController";
 
 // Загружаем переменные окружения из .env
 dotenv.config();
@@ -12,7 +11,6 @@ dotenv.config();
 const app: Application = express();
 const port = process.env.PORT || 3000;
 
-// Проверяем, что MONGO_URI определён в .env
 const mongoUri = process.env.MONGO_URI;
 if (!mongoUri) {
     throw new Error('MONGO_URI не задан в .env');
