@@ -1,8 +1,9 @@
 import dotenv from 'dotenv';
-import express, { Application } from 'express';
+import express, {Application} from 'express';
 import cors from 'cors';
 import routes from "./routes";
 import mongoose from "mongoose";
+import {findByID} from "controllers/externalApiController";
 
 // Загружаем переменные окружения из .env
 dotenv.config();
