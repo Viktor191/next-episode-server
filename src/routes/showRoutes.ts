@@ -1,15 +1,11 @@
 import {Router} from "express";
-import {findByID} from "controllers/externalApiController";
+import {findByID} from "controllers/findByIDApiController";
 import {getTVDetails} from "controllers/showController";
+import {searchMovie} from "controllers/searchController";
 
 const router = Router();
 
-router.get("/", async (req, res) => {
-    const data = await findByID('tt0944947');
-    console.log(data.tv_results[0]);
-
-    res.status(200).send(req.query.q);
-})
+router.get('/search', searchMovie);
 
 router.get("/:imdbId", getTVDetails);
 

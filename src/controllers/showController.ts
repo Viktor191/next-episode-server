@@ -1,5 +1,5 @@
 import {Request, Response} from "express";
-import {findByID} from "controllers/externalApiController";
+import {findByID} from "controllers/findByIDApiController";
 import {TVResult} from 'models/showModel';
 
 type SelectedTVResult = Pick<TVResult, 'id' | 'name' | 'overview' | 'first_air_date' | 'vote_average'>;
