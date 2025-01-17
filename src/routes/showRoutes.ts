@@ -1,9 +1,12 @@
 import {Router} from "express";
-import {findByID} from "controllers/findByIDApiController";
 import {getTVDetails} from "controllers/showController";
 import {searchMovie} from "controllers/searchController";
+import {getMovieDetailsByDbID} from "controllers/searshDBIDController";
 
 const router = Router();
+
+
+router.get("/search/db/:dbId", getMovieDetailsByDbID);
 
 router.get('/search', searchMovie);
 

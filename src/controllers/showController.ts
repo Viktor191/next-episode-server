@@ -3,7 +3,7 @@ import {findByID} from "controllers/findByIDApiController";
 import {TVResult} from 'models/showModel';
 
 type SelectedTVResult = Pick<TVResult, 'id' | 'name' | 'overview' | 'first_air_date' | 'vote_average'>;
-
+// поиск сериала по IMDb ID
 export const getTVDetails = async (req: Request, res: Response): Promise<void> => {
     try {
         const apiResponse = await findByID(req.params.imdbId);

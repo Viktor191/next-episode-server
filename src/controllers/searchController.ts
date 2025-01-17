@@ -10,7 +10,7 @@ type SelectedMovieResult = {
     first_air_date: string | null;
     vote_average: number;
 };
-
+// поиск фильма по названию или ключевому слову
 export const searchMovie = async (req: Request, res: Response): Promise<void> => {
     try {
         const {query} = req.query;
