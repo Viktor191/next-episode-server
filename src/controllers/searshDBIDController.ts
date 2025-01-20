@@ -12,7 +12,7 @@ export const getMovieDetailsByDbID = async (req: Request, res: Response): Promis
                 id: apiResponse.id,
                 name: apiResponse.title || apiResponse.original_title,
                 overview: apiResponse.overview,
-                first_air_date: apiResponse.release_date || null,
+                first_air_date: apiResponse.release_date || apiResponse.first_air_date,
                 vote_average: apiResponse.vote_average,
             };
             res.status(200).json(filteredResult);
