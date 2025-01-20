@@ -26,7 +26,7 @@ export const fetchFromTMDB = async <T>(
 };
 
 export const processApiResponse = (apiResponse: FindByIDResponse) => {
-    // Проверяем, является ли это сериалом
+
     if (apiResponse.tv_results && apiResponse.tv_results.length > 0) {
         const tvResult: TVResult = apiResponse.tv_results[0];
         return {
@@ -39,7 +39,6 @@ export const processApiResponse = (apiResponse: FindByIDResponse) => {
         };
     }
 
-    // Проверяем, является ли это фильмом
     if (apiResponse.movie_results && apiResponse.movie_results.length > 0) {
         const movieResult: MovieResult = apiResponse.movie_results[0];
         return {
@@ -52,6 +51,5 @@ export const processApiResponse = (apiResponse: FindByIDResponse) => {
         };
     }
 
-    // Если ничего не найдено, возвращаем null
     return null;
 };

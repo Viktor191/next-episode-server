@@ -6,7 +6,9 @@ import {getMovieDetailsByDbID} from "controllers/searshDBIDController";
 import {getMovieByImdbID} from "controllers/testAllController";
 
 const router = Router();
+
 router.get("/find/imdb/:imdbID", getMovieByImdbID);
+
 
 router.get("/search/db/:dbId", getMovieDetailsByDbID);
 
