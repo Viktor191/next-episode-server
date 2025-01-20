@@ -1,10 +1,9 @@
 import axios from "axios";
 import dotenv from "dotenv";
-import {FindByIDResponse, TVResult} from "models/showModel";
+import {FindByIDResponse} from "types/common";
+import {Sourse} from "types/common";
 
 dotenv.config();
-
-type Sourse = 'imdb_id' | 'youtube_id';
 
 const TMDB_API_URL = process.env.TMDB_API_URL;
 
