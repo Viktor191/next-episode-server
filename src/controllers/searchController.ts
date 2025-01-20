@@ -1,16 +1,9 @@
 import {Request, Response} from "express";
 import axios from "axios";
+import {SelectedTVResult} from "types/common";
 
 const TMDB_API_URL = process.env.TMDB_API_URL;
 
-type SelectedMovieResult = {
-    id: number;
-    name: string;
-    overview: string;
-    first_air_date: string | null;
-    vote_average: number;
-};
-// поиск фильма по названию или ключевому слову
 export const searchMovie = async (req: Request, res: Response): Promise<void> => {
     try {
         const {query} = req.query;
@@ -19,15 +12,17 @@ export const searchMovie = async (req: Request, res: Response): Promise<void> =>
             res.status(400).json({error: 'Введите запрос'});
             return;
         }
+
         const response = await axios.get(`${TMDB_API_URL}/search/movie`, {
             params: {
                 query,
-                language: 'en-US', // 'ru-RU' - для русского языка 'en-US' - для английского
+                language: 'en-US',
             },
             headers: {
                 Authorization: `Bearer ${process.env.TMDB_BEARER_TOKEN}`,
             },
         });
+
         const results = response.data.results;
 
         if (!results || results.length === 0) {
@@ -35,7 +30,7 @@ export const searchMovie = async (req: Request, res: Response): Promise<void> =>
             return;
         }
 
-        const simplifiedResults: SelectedMovieResult[] = results.map((result: any) => ({
+        const simplifiedResults: SelectedTVResult[] = results.map((result: any) => ({
             id: result.id,
             name: result.title || result.original_title,
             overview: result.overview,
@@ -49,4 +44,4 @@ export const searchMovie = async (req: Request, res: Response): Promise<void> =>
 
         res.status(500).json({error: 'Ошибка сервера'});
     }
-}
+};

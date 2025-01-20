@@ -1,8 +1,7 @@
 import {Request, Response} from "express";
 import {findByID} from "controllers/findByIDApiController";
-import {TVResult} from 'models/showModel';
+import {SelectedTVResult} from "types/common";
 
-type SelectedTVResult = Pick<TVResult, 'id' | 'name' | 'overview' | 'first_air_date' | 'vote_average'>;
 // поиск сериала по IMDb ID
 export const getTVDetails = async (req: Request, res: Response): Promise<void> => {
     try {

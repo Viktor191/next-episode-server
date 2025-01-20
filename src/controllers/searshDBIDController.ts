@@ -1,8 +1,6 @@
 import {Request, Response} from "express";
 import {findByDbID} from "controllers/findByIDApiController";
-import {TVResult} from "models/showModel";
-
-type SelectedTVResult = Pick<TVResult, 'id' | 'name' | 'overview' | 'first_air_date' | 'vote_average'>;
+import {SelectedTVResult} from "types/common";
 
 // Поиск фильма по TMDB ID
 export const getMovieDetailsByDbID = async (req: Request, res: Response): Promise<void> => {
