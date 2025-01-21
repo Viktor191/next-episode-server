@@ -9,30 +9,26 @@ export const getMovieByImdbID = async (
 ): Promise<void> => {
   try {
     const imdbID = req.params.imdbID;
+    const endpoint = `/find/${imdbID}`;
+    const params = { external_source: "imdb_id" };
 
     if (!imdbID) {
       res.status(400).json({ message: "IMDb ID is required" });
       return;
     }
 
-    const endpoint = `/find/${imdbID}`;
-    const params = { external_source: "imdb_id" };
+    const { data } = await tmdbApiClient.get<FindByIDResponse>(endpoint, {
+      params,
+    });
 
-    const { data: apiResponse } = await tmdbApiClient.get<FindByIDResponse>(
-      endpoint,
-      {
-        params,
-      }
-    );
-
-    if (!apiResponse) {
+    if (!data) {
       res
         .status(404)
         .json({ message: "No results found for the given IMDb ID" });
       return;
     }
 
-    const unwrapedData = unwrapObject(apiResponse);
+    const unwrapedData = unwrapObject(data);
 
     const normalizeData = {
       id: unwrapedData?.id,
@@ -43,13 +39,7 @@ export const getMovieByImdbID = async (
         unwrapedData?.first_air_date || unwrapedData?.release_date,
     };
 
-    if (normalizeData) {
-      res.status(200).json(normalizeData);
-    } else {
-      res
-        .status(404)
-        .json({ message: "No results found for the given IMDb ID" });
-    }
+    res.status(200).json(normalizeData);
   } catch (error) {
     console.error("Error fetching movie by IMDb ID:", error);
     res.status(500).json({ message: "Internal server error" });
