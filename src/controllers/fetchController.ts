@@ -102,3 +102,11 @@ export const filterDbIDResponse = (
 
     return null;
 };
+
+export const processSearchResults = (
+    searchResults: (MovieResult | TVResult)[]
+): FilteredResult[] => {
+    return searchResults
+        .map((result) => filterDbIDResponse(result))
+        .filter((filteredResult): filteredResult is FilteredResult => filteredResult !== null);
+};

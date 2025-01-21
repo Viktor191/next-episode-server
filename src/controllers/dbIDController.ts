@@ -3,7 +3,7 @@ import {fetchFromTMDBID} from "controllers/fetchController";
 import {filterDbIDResponse} from "controllers/fetchController";
 import {MovieResult, TVResult} from "types/common";
 
-export const getDetailsByDbID = async (req: Request, res: Response): Promise<void> => {
+export const getMovieByDbID = async (req: Request, res: Response): Promise<void> => {
     try {
         const dbID = req.params.dbID;
 
@@ -19,8 +19,8 @@ export const getDetailsByDbID = async (req: Request, res: Response): Promise<voi
                 res.status(200).json(filteredMovieData);
                 return;
             }
-        } catch {
-            console.log(`ID ${dbID} не найден как фильм. Попробуем как сериал.`);
+        } catch (error) {
+            console.error(`Error fetching movie with ID ${dbID}:`, error);
         }
 
         try {
@@ -30,8 +30,8 @@ export const getDetailsByDbID = async (req: Request, res: Response): Promise<voi
                 res.status(200).json(filteredTVData);
                 return;
             }
-        } catch {
-            console.log(`ID ${dbID} не найден как сериал.`);
+        } catch (error) {
+            console.error(`Error fetching movie with ID ${dbID}:`, error);
         }
 
         res.status(404).json({message: "No results found for the given TMDB ID"});

@@ -1,10 +1,13 @@
 import {Request, Response} from "express";
 import axios from "axios";
-import {SelectedTVResult} from "types/common";
+import dotenv from "dotenv";
+import {processSearchResults} from "controllers/fetchController";
+
+dotenv.config();
 
 const TMDB_API_URL = process.env.TMDB_API_URL;
-// поиск по названию фильма или сериала
-export const searchMovie = async (req: Request, res: Response): Promise<void> => {
+
+export const getMovieByName = async (req: Request, res: Response): Promise<void> => {
     try {
         const {query} = req.query;
 
@@ -30,18 +33,11 @@ export const searchMovie = async (req: Request, res: Response): Promise<void> =>
             return;
         }
 
-        const simplifiedResults: SelectedTVResult[] = results.map((result: any) => ({
-            id: result.id,
-            name: result.title || result.original_title,
-            overview: result.overview,
-            first_air_date: result.release_date || null,
-            vote_average: result.vote_average,
-        }));
+        const simplifiedResults = processSearchResults(results);
 
         res.status(200).json(simplifiedResults);
     } catch (error: any) {
         console.error('Ошибка при поиске фильма:', error.message);
-
         res.status(500).json({error: 'Ошибка сервера'});
     }
 };
