@@ -3,12 +3,14 @@ import {getTVDetails} from "controllers/showController";
 import {searchMovie} from "controllers/searchController";
 import {getMovieDetailsByDbID} from "controllers/searshDBIDController";
 
-import {getMovieByImdbID} from "controllers/testAllController";
+import {getDetailsByDbID} from "controllers/dbIDController";
+import {getMovieByImdbID} from "controllers/imdbIDController";
 
 const router = Router();
 
 router.get("/find/imdb/:imdbID", getMovieByImdbID);
 
+router.get("/details/db/:dbID", getDetailsByDbID);
 
 router.get("/search/db/:dbId", getMovieDetailsByDbID);
 

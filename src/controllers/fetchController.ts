@@ -1,6 +1,7 @@
 import axios from "axios";
 import dotenv from "dotenv";
 import {FindByIDResponse, MovieResult, TVResult} from "types/common";
+import {FilteredResult} from "types/common";
 
 dotenv.config();
 
@@ -25,7 +26,27 @@ export const fetchFromTMDB = async <T>(
     }
 };
 
-export const processApiResponse = (apiResponse: FindByIDResponse) => {
+export const fetchFromTMDBID = async <T>(
+    id: string,
+    type: "movie" | "tv",
+    params?: Record<string, string | number>
+): Promise<T> => {
+    try {
+        const endpoint = `/${type}/${id}`;
+        const {data} = await axios.get<T>(`${TMDB_API_URL}${endpoint}`, {
+            params,
+            headers: {
+                Authorization: `Bearer ${TMDB_BEARER_TOKEN}`,
+            },
+        });
+        return data;
+    } catch (error: any) {
+        console.error(`Ошибка при запросе к TMDB API (${id}, ${type}):`, error.message);
+        throw new Error("Ошибка при запросе к TMDB API");
+    }
+};
+
+export const processApiResponse = (apiResponse: FindByIDResponse, param?: string) => {
 
     if (apiResponse.tv_results && apiResponse.tv_results.length > 0) {
         const tvResult: TVResult = apiResponse.tv_results[0];
@@ -48,6 +69,34 @@ export const processApiResponse = (apiResponse: FindByIDResponse) => {
             title: movieResult.title,
             original_title: movieResult.original_title,
             release_date: movieResult.release_date,
+        };
+    }
+
+    return null;
+};
+
+export const filterDbIDResponse = (
+    dbResponse: MovieResult | TVResult
+): FilteredResult | null => {
+    if ("title" in dbResponse && "release_date" in dbResponse) {
+        return {
+            id: dbResponse.id,
+            overview: dbResponse.overview,
+            vote_average: dbResponse.vote_average,
+            title: dbResponse.title,
+            original_title: dbResponse.original_title,
+            release_date: dbResponse.release_date,
+        };
+    }
+
+    if ("name" in dbResponse && "first_air_date" in dbResponse) {
+        return {
+            id: dbResponse.id,
+            overview: dbResponse.overview,
+            vote_average: dbResponse.vote_average,
+            name: dbResponse.name,
+            original_name: dbResponse.original_name,
+            first_air_date: dbResponse.first_air_date,
         };
     }
 
