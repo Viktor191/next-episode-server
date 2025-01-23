@@ -1,6 +1,6 @@
 import {Router} from "express";
-import {getMovieByName} from "controllers/searchController";
-import {getTvByName, getMovieByDbID, getTvByDbID, getMovieByImdbID} from "controllers/searchController";
+import {getMovieByName} from "controllers/showController";
+import {getTvByName, getMovieByDbID, getTvByDbID, getMovieByImdbID} from "controllers/showController";
 
 const router = Router();
 
