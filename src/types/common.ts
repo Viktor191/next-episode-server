@@ -6,6 +6,7 @@ export interface FindByIDResponse {
     tv_season_results: any[];
 }
 
+
 export interface TVResult {
     backdrop_path: string | null;
     id: number;

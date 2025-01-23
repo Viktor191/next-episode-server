@@ -21,7 +21,7 @@ export const register = async (req: Request<{}, {}, {
             return;
         }
 
-        const hashedPassword = await bcryptjs.hash(password, 1000);
+        const hashedPassword = await bcryptjs.hash(password, 12);
         const newUser = new UserModel({username, password: hashedPassword});
         await newUser.save();
 
