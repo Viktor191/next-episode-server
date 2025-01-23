@@ -20,7 +20,23 @@ export const getMovieByDbID = async (req: Request, res: Response): Promise<void>
                 return;
             }
         } catch (error) {
-            console.error(`Error fetching movie with ID ${dbID}:`, error);
+            console.error(`Error fetching movie with ID ${dbID}:`, error);// исправить сообщение об ошибке
+        }
+
+        res.status(404).json({message: "No results found for the given TMDB ID"});
+    } catch (error) {
+        console.error("Error fetching details by TMDB ID:", error);
+        res.status(500).json({message: "Internal server error"});
+    }
+};
+
+export const getTvByDbID = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const dbID = req.params.dbID;
+
+        if (!dbID) {
+            res.status(400).json({message: "TMDB ID is required"});
+            return;
         }
 
         try {

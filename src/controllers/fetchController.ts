@@ -14,7 +14,7 @@ export const fetchFromTMDB = async <T>(
 ): Promise<T> => {
     try {
         const {data} = await axios.get<T>(`${TMDB_API_URL}${endpoint}`, {
-            params, // Если params не передан, axios просто проигнорирует его
+            params,
             headers: {
                 Authorization: `Bearer ${TMDB_BEARER_TOKEN}`,
             },
