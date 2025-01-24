@@ -12,4 +12,4 @@ const ShowSchema = new Schema<IShow>({
     isNotified: {type: Boolean, required: true, default: false},
 });
 
-export const ShowModel = model<IShow>("ShowModel", ShowSchema, "shows");
+export const ShowModel = model<IShow>("ShowModel", ShowSchema, "favorites");

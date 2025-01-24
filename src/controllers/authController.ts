@@ -7,13 +7,11 @@ import {z} from "zod";
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS || '10', 10);
 
-// Валидация входных данных с использованием Zod
 const userInputSchema = z.object({
     username: z.string().min(3, "Имя пользователя должно содержать минимум 3 символа").max(30, "Имя пользователя не может превышать 30 символов"),
     password: z.string().min(6, "Пароль должен содержать минимум 6 символов"),
 });
 
-// Регистрация
 export const register = async (req: Request, res: Response): Promise<void> => {
     try {
         const parsedInput = userInputSchema.parse(req.body);
@@ -41,7 +39,6 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-// Авторизация
 export const login = async (req: Request, res: Response): Promise<void> => {
     try {
         const parsedInput = userInputSchema.parse(req.body);

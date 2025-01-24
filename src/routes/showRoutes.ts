@@ -1,6 +1,13 @@
 import {Router} from "express";
-import {getMovieByName} from "controllers/showController";
-import {getTvByName, getMovieByDbID, getTvByDbID, getMovieByImdbID} from "controllers/showController";
+import {
+    addToFavorites,
+    getMovieByName,
+    getTvByName,
+    getMovieByDbID,
+    getTvByDbID,
+    getMovieByImdbID,
+    getFavorites
+} from "controllers/showController";
 
 const router = Router();
 
@@ -12,8 +19,7 @@ router.get("/tv/:dbID", getTvByDbID);
 router.get('/search/movie/:name', getMovieByName);
 router.get('/search/tv/:name', getTvByName);
 
-router.post("/:imdbId/favorite", (req, res) => {
-    res.status(200).send(req.params.imdbId);
-})
+router.post('/add/favorites', addToFavorites);
+router.get('/favorites', getFavorites);
 
 export default router;
