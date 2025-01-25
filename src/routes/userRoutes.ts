@@ -1,14 +1,14 @@
-import { Router } from "express";
+import {Router} from "express";
+import {addToFavorites, getFavorites} from "../controllers/userController";
 
-const router= Router();
+const router = Router();
 
-router.get("/me", (req,res) => {
+router.post('/add/favorites', addToFavorites);
+
+router.get('/me/favorites', getFavorites);
+
+router.get("/me", (req, res) => {
     res.status(200).send('response /user/me');
-})
-
-router.get("/me/favorites", (req,res) => {
-    console.log('response /user/me/favorites');
-    res.status(200).send('response /user/me/favorites');
 })
 
 export default router;

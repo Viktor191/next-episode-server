@@ -1,7 +1,6 @@
 import {Request, Response} from "express";
 import {tmdbApiClient} from "helpers/tmdbApiClient";
 import {unwrapObject} from "helpers/unwrapObject";
-import {ShowModel} from "models/showModel";
 
 export const getMovieByName = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -190,45 +189,5 @@ export const getMovieByImdbID = async (req: Request, res: Response): Promise<voi
     } catch (error: any) {
         console.error("Error fetching movie by IMDb ID:", error.message);
         res.status(500).json({message: "Internal server error"});
-    }
-};
-
-export const addToFavorites = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const {tmdbId, type} = req.body;
-
-        if (!tmdbId || !type) {
-            res.status(400).json({error: "Пожалуйста, укажите tmdbId и тип (tv или movie)"});
-            return;
-        }
-
-        const existingShow = await ShowModel.findOne({tmdbId, type});
-        if (existingShow) {
-            res.status(400).json({error: "Шоу уже есть в избранном"});
-            return;
-        }
-
-        const newFavorite = new ShowModel({
-            tmdbId,
-            type,
-            isNotified: false, // По умолчанию false
-        });
-
-        await newFavorite.save();
-
-        res.status(201).json({message: "Успешно добавлено в избранное"});
-    } catch (error: any) {
-        console.error("Ошибка при добавлении в избранное:", error.message);
-        res.status(500).json({error: "Ошибка сервера"});
-    }
-};
-
-export const getFavorites = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const favorites = await ShowModel.find();
-        res.status(200).json(favorites);
-    } catch (error: any) {
-        console.error("Ошибка при получении избранного:", error.message);
-        res.status(500).json({error: "Ошибка сервера"});
     }
 };
