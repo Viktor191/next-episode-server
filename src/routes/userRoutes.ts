@@ -1,5 +1,5 @@
 import {Router} from "express";
-import {addToFavorites, deleteFromFavorites, getFavorites} from "../controllers/userController";
+import {addToFavorites, deleteFromFavorites, getFavorites, getFavoritesDetails} from "../controllers/userController";
 
 const router = Router();
 
@@ -8,8 +8,6 @@ router.delete('/delete/favorites', deleteFromFavorites);
 
 router.get('/me/favorites', getFavorites);
 
-router.get("/me", (req, res) => {
-    res.status(200).send('response /user/me');
-})
+router.get("/me/details", getFavoritesDetails);
 
 export default router;
