@@ -49,3 +49,21 @@ export const getFavorites = async (req: Request, res: Response): Promise<void> =
         res.status(500).json({message: "Ошибка сервера"});
     }
 };
+
+export const deleteFromFavorites = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const {tmdbId, type} = req.body;
+        const userId = req.user?.userId;
+
+        if (!tmdbId || !type) {
+            res.status(400).json({error: "Пожалуйста, укажите tmdbId и тип (tv или movie)"});
+            return;
+        }
+
+        await ShowModel.deleteOne({tmdbId, type, userId});
+        res.status(200).json({message: "Успешно удалено из избранного"});
+    } catch (error: any) {
+        console.error("Ошибка при удалении из избранного:", error.message);
+        res.status(500).json({error: "Ошибка сервера"});
+    }
+}

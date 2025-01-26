@@ -37,7 +37,6 @@ export const authenticateToken = (
         if (typeof decoded === 'object' && 'userId' in decoded) {
             req.user = decoded as MyTokenPayload;
 
-            // Проверка наличия userId
             if (!req.user.userId) {
                 res.status(403).json({error: 'Токен не содержит идентификатора пользователя'});
                 return;
