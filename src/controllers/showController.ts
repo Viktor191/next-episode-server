@@ -1,6 +1,7 @@
 import {Request, Response} from "express";
 import {tmdbApiClient} from "helpers/tmdbApiClient";
 import {unwrapObject} from "helpers/unwrapObject";
+import {ShowModel} from "models/showModel";
 
 export const getMovieByName = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -191,3 +192,54 @@ export const getMovieByImdbID = async (req: Request, res: Response): Promise<voi
         res.status(500).json({message: "Internal server error"});
     }
 };
+
+export const addToFavorites = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const {type} = req.body;
+        const userId = req.user?.userId;
+        const {tmdbId} = req.params;
+
+        if (!tmdbId || !type) {
+            res.status(400).json({error: "Пожалуйста, укажите tmdbId и тип (tv или movie)"});
+            return;
+        }
+
+        const existingShow = await ShowModel.findOne({tmdbId, type});
+        if (existingShow) {
+            res.status(400).json({error: "Шоу уже есть в избранном"});
+            return;
+        }
+
+        const newFavorite = new ShowModel({
+            tmdbId,
+            type,
+            userId,
+            isNotified: false,
+        });
+
+        await newFavorite.save();
+        res.status(201).json({message: "Успешно добавлено в избранное"});
+    } catch (error: any) {
+        console.error("Ошибка при добавлении в избранное:", error.message);
+        res.status(500).json({error: "Ошибка сервера"});
+    }
+};
+
+export const deleteFromFavorites = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const {type} = req.body;
+        const userId = req.user?.userId;
+        const {tmdbId} = req.params;
+
+        if (!tmdbId || !type) {
+            res.status(400).json({error: "Пожалуйста, укажите tmdbId и тип (tv или movie)"});
+            return;
+        }
+
+        await ShowModel.deleteOne({tmdbId, type, userId});
+        res.status(200).json({message: "Успешно удалено из избранного"});
+    } catch (error: any) {
+        console.error("Ошибка при удалении из избранного:", error.message);
+        res.status(500).json({error: "Ошибка сервера"});
+    }
+}

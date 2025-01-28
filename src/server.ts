@@ -4,10 +4,8 @@ import cors from 'cors';
 import routes from "./routes";
 import mongoose from "mongoose";
 
-// Загружаем переменные окружения из .env
 dotenv.config();
 
-// Создание приложения Express
 const app: Application = express();
 const port = process.env.PORT || 3000;
 
