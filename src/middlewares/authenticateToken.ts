@@ -1,18 +1,8 @@
-import {Request, Response, NextFunction} from 'express';
-import jwt, {JwtPayload} from 'jsonwebtoken';
+import {Response, NextFunction} from 'express';
+import jwt from 'jsonwebtoken';
+import {AuthenticatedRequest, MyTokenPayload} from "types/request";
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
-
-// Расширение интерфейса для полезной нагрузки токена
-export interface MyTokenPayload extends JwtPayload {
-    userId: string;
-    username: string;
-}
-
-// Расширение интерфейса Request для хранения данных пользователя
-export interface AuthenticatedRequest extends Request {
-    user?: MyTokenPayload;
-}
 
 // Middleware для проверки JWT-токена
 export const authenticateToken = (

@@ -2,8 +2,9 @@ import {Request, Response} from "express";
 import {tmdbApiClient} from "helpers/tmdbApiClient";
 import {unwrapObject} from "helpers/unwrapObject";
 import {ShowModel} from "models/showModel";
+import {AuthenticatedRequest} from "types/request";
 
-export const getMovieByName = async (req: Request, res: Response): Promise<void> => {
+export const getMovieByName = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const name = req.params.name;
 
@@ -42,7 +43,7 @@ export const getMovieByName = async (req: Request, res: Response): Promise<void>
     }
 };
 
-export const getTvByName = async (req: Request, res: Response): Promise<void> => {
+export const getTvByName = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const name = req.params.name;
 
@@ -81,7 +82,7 @@ export const getTvByName = async (req: Request, res: Response): Promise<void> =>
     }
 };
 
-export const getMovieByDbID = async (req: Request, res: Response): Promise<void> => {
+export const getMovieByDbID = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const dbID = req.params.dbID;
 
@@ -118,7 +119,7 @@ export const getMovieByDbID = async (req: Request, res: Response): Promise<void>
     }
 };
 
-export const getTvByDbID = async (req: Request, res: Response): Promise<void> => {
+export const getTvByDbID = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const dbID = req.params.dbID;
 
@@ -155,7 +156,7 @@ export const getTvByDbID = async (req: Request, res: Response): Promise<void> =>
     }
 };
 
-export const getMovieByImdbID = async (req: Request, res: Response): Promise<void> => {
+export const getMovieByImdbID = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const imdbID = req.params.imdbID;
 
@@ -193,7 +194,7 @@ export const getMovieByImdbID = async (req: Request, res: Response): Promise<voi
     }
 };
 
-export const addToFavorites = async (req: Request, res: Response): Promise<void> => {
+export const addToFavorites = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const {type} = req.body;
         const userId = req.user?.userId;
@@ -225,7 +226,7 @@ export const addToFavorites = async (req: Request, res: Response): Promise<void>
     }
 };
 
-export const deleteFromFavorites = async (req: Request, res: Response): Promise<void> => {
+export const deleteFromFavorites = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const {type} = req.body;
         const userId = req.user?.userId;

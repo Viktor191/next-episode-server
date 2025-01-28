@@ -1,8 +1,9 @@
 import {Request, Response} from "express";
 import {ShowModel} from "models/showModel";
 import {fetchMovieByDbID, fetchTvByDbID} from "helpers/tmdbSearchHelp";
+import {AuthenticatedRequest} from "types/request";
 
-export const getFavorites = async (req: Request, res: Response): Promise<void> => {
+export const getFavorites = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const userId = req.user?.userId;
 
