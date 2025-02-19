@@ -3,6 +3,7 @@ import {tmdbApiClient} from "helpers/tmdbApiClient";
 import {unwrapObject} from "helpers/unwrapObject";
 import {ShowModel} from "models/showModel";
 import {AuthenticatedRequest} from "types/request";
+import * as console from "node:console";
 
 export const getMovieByName = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
@@ -55,12 +56,12 @@ export const getTvByName = async (req: AuthenticatedRequest, res: Response): Pro
         const response = await tmdbApiClient.get("/search/tv", {
             params: {
                 query: name,
-                language: "en-US", //"ru-RU" для русского языка
+                language: "ru-RU", //"ru-RU" для русского языка en-US для английского
             },
         });
 
         const results = response.data.results;
-
+        console.log('results:', results);
         if (!results || results.length === 0) {
             res.status(404).json({error: 'Ничего не найдено'});
             return;
@@ -84,7 +85,7 @@ export const getTvByName = async (req: AuthenticatedRequest, res: Response): Pro
 
 export const getMovieByDbID = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const dbID = req.params.dbID;
+        const dbID = req.params.dbID; // Возможно стоит добавить в параметры language: "ru-RU", чтобы получать данные на русском языке
 
         if (!dbID) {
             res.status(400).json({message: "TMDB ID is required"});
