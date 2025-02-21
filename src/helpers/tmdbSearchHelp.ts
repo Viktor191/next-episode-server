@@ -4,7 +4,6 @@ export const fetchMovieByDbID = async (dbID: string): Promise<any> => {
     try {
         const response = await tmdbApiClient.get(`/movie/${dbID}`);
         const movieData = response.data;
-        // console.log("movieData:", movieData);
         return {
             id: movieData.id,
             overview: movieData.overview,

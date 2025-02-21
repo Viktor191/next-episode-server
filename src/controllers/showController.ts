@@ -186,6 +186,8 @@ export const getMovieByImdbID = async (req: AuthenticatedRequest, res: Response)
             title: firstResult.title || firstResult.name,
             original_title: firstResult.original_title || firstResult.original_name,
             release_date: firstResult.release_date || firstResult.first_air_date,
+            poster_path: firstResult.poster_path,
+            media_type: firstResult.media_type,
         };
 
         res.status(200).json(simplifiedResult);
@@ -197,23 +199,26 @@ export const getMovieByImdbID = async (req: AuthenticatedRequest, res: Response)
 
 export const addToFavorites = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
+        // console.log("Тело запроса:", req.body); // 🔍 Добавили логирование
+        // console.log("Параметры запроса:", req.params); // 🔍 Логирование параметров
+
         const {type} = req.body;
         const userId = req.user?.userId;
-        const {tmdbId} = req.params;
+        const {dbID} = req.params;
 
-        if (!tmdbId || !type) {
-            res.status(400).json({error: "Пожалуйста, укажите tmdbId и тип (tv или movie)"});
+        if (!dbID || !type) {
+            res.status(400).json({error: "Пожалуйста, укажите id и тип (tv или movie)"});
             return;
         }
 
-        const existingShow = await ShowModel.findOne({tmdbId, type});
+        const existingShow = await ShowModel.findOne({tmdbId: dbID, type});
         if (existingShow) {
-            res.status(400).json({error: "Шоу уже есть в избранном"});
+            res.status(400).json({error: "Уже есть в избранном"});
             return;
         }
 
         const newFavorite = new ShowModel({
-            tmdbId,
+            tmdbId: dbID,
             type,
             userId,
             isNotified: false,
