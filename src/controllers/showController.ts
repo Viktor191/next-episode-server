@@ -199,9 +199,6 @@ export const getMovieByImdbID = async (req: AuthenticatedRequest, res: Response)
 
 export const addToFavorites = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        // console.log("Тело запроса:", req.body); // 🔍 Добавили логирование
-        // console.log("Параметры запроса:", req.params); // 🔍 Логирование параметров
-
         const {type} = req.body;
         const userId = req.user?.userId;
         const {dbID} = req.params;
@@ -234,19 +231,18 @@ export const addToFavorites = async (req: AuthenticatedRequest, res: Response): 
 
 export const deleteFromFavorites = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const {type} = req.body;
         const userId = req.user?.userId;
-        const {tmdbId} = req.params;
+        const {id} = req.params;
 
-        if (!tmdbId || !type) {
-            res.status(400).json({error: "Пожалуйста, укажите tmdbId и тип (tv или movie)"});
+        if (!id) {
+            res.status(400).json({error: `"Пожалуйста, укажите id" ${userId} ${id}`});
             return;
         }
 
-        await ShowModel.deleteOne({tmdbId, type, userId});
+        await ShowModel.deleteOne({tmdbId: id, userId});
         res.status(200).json({message: "Успешно удалено из избранного"});
     } catch (error: any) {
         console.error("Ошибка при удалении из избранного:", error.message);
         res.status(500).json({error: "Ошибка сервера"});
     }
-}
+};

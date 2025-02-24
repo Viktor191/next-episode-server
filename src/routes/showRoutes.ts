@@ -17,6 +17,6 @@ router.get("/tv/:dbID", getTvByDbID);
 router.get('/search/movie/:name', getMovieByName);
 router.get('/search/tv/:name', getTvByName);
 router.post('/:dbID/favorites', addToFavorites);
-router.delete('/:dbID/favorites', deleteFromFavorites);
+router.delete('/:id/favorites', deleteFromFavorites);
 
 export default router;
