@@ -4,39 +4,27 @@ import {unwrapObject} from "helpers/unwrapObject";
 import {ShowModel} from "models/showModel";
 import {AuthenticatedRequest} from "types/request";
 import * as console from "node:console";
+import {formatShowData} from "helpers/formatShow";
 
 export const getMovieByName = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const name = req.params.name;
-
         if (!name) {
             res.status(400).json({error: 'Введите название фильма'});
             return;
         }
 
         const response = await tmdbApiClient.get('/search/movie', {
-            params: {
-                query: name,
-                language: 'en-US',// "ru-RU" для русского языка
-            },
+            params: {query: name, language: 'ru-RU'},
         });
 
         const results = response.data.results;
-
         if (!results || results.length === 0) {
             res.status(404).json({error: 'Ничего не найдено'});
             return;
         }
 
-        const simplifiedResults = results.map((data: any) => ({
-            id: data.id,
-            overview: data.overview,
-            vote_average: data.vote_average,
-            title: data.title,
-            original_title: data.original_title,
-            release_date: data.release_date,
-        }));
-
+        const simplifiedResults = results.map(formatShowData);
         res.status(200).json(simplifiedResults);
     } catch (error: any) {
         console.error('Ошибка при поиске фильма:', error.message);
@@ -47,35 +35,22 @@ export const getMovieByName = async (req: AuthenticatedRequest, res: Response): 
 export const getTvByName = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
         const name = req.params.name;
-
         if (!name) {
             res.status(400).json({error: 'Введите название сериала'});
             return;
         }
 
         const response = await tmdbApiClient.get("/search/tv", {
-            params: {
-                query: name,
-                language: "ru-RU", //"ru-RU" для русского языка en-US для английского
-            },
+            params: {query: name, language: "ru-RU"},
         });
 
         const results = response.data.results;
-        console.log('results:', results);
         if (!results || results.length === 0) {
             res.status(404).json({error: 'Ничего не найдено'});
             return;
         }
 
-        const simplifiedResults = results.map((data: any) => ({
-            id: data.id,
-            overview: data.overview,
-            vote_average: data.vote_average,
-            title: data.name,
-            original_title: data.original_name,
-            release_date: data.first_air_date,
-        }));
-
+        const simplifiedResults = results.map(formatShowData);
         res.status(200).json(simplifiedResults);
     } catch (error: any) {
         console.error('Ошибка при поиске сериала:', error.message);
@@ -85,37 +60,27 @@ export const getTvByName = async (req: AuthenticatedRequest, res: Response): Pro
 
 export const getMovieByDbID = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-        const dbID = req.params.dbID; // Возможно стоит добавить в параметры language: "ru-RU", чтобы получать данные на русском языке
+        const dbID = req.params.dbID;
 
         if (!dbID) {
             res.status(400).json({message: "TMDB ID is required"});
             return;
         }
 
-        try {
-            const response = await tmdbApiClient.get(`/movie/${dbID}`);
-            const movieData = response.data;
+        const response = await tmdbApiClient.get(`/movie/${dbID}`, {
+            params: {language: "ru-RU"},
+        });
 
-            if (movieData) {
-                const simplifiedResult = {
-                    id: movieData.id,
-                    overview: movieData.overview,
-                    vote_average: movieData.vote_average,
-                    title: movieData.title,
-                    original_title: movieData.original_title,
-                    release_date: movieData.release_date,
-                };
-
-                res.status(200).json(simplifiedResult);
-                return;
-            }
-        } catch (error: any) {
-            console.error(`Error fetching movie with ID ${dbID}:`, error.message);
+        const movieData = response.data;
+        if (movieData) {
+            const simplifiedResult = formatShowData(movieData);
+            res.status(200).json(simplifiedResult);
+            return;
         }
 
         res.status(404).json({message: "No results found for the given TMDB ID"});
     } catch (error: any) {
-        console.error("Error fetching details by TMDB ID:", error.message);
+        console.error(`Error fetching movie with ID ${req.params.dbID}:`, error.message);
         res.status(500).json({message: "Internal server error"});
     }
 };
@@ -129,30 +94,20 @@ export const getTvByDbID = async (req: AuthenticatedRequest, res: Response): Pro
             return;
         }
 
-        try {
-            const response = await tmdbApiClient.get(`/tv/${dbID}`);
-            const tvData = response.data;
+        const response = await tmdbApiClient.get(`/tv/${dbID}`, {
+            params: {language: "ru-RU"},
+        });
 
-            if (tvData) {
-                const simplifiedResult = {
-                    id: tvData.id,
-                    overview: tvData.overview,
-                    vote_average: tvData.vote_average,
-                    title: tvData.name,
-                    original_title: tvData.original_name,
-                    release_date: tvData.first_air_date,
-                };
-
-                res.status(200).json(simplifiedResult);
-                return;
-            }
-        } catch (error: any) {
-            console.error(`Error fetching TV show with ID ${dbID}:`, error.message);
+        const tvData = response.data;
+        if (tvData) {
+            const simplifiedResult = formatShowData(tvData);
+            res.status(200).json(simplifiedResult);
+            return;
         }
 
         res.status(404).json({message: "No results found for the given TMDB ID"});
     } catch (error: any) {
-        console.error("Error fetching details by TMDB ID:", error.message);
+        console.error(`Error fetching TV show with ID ${req.params.dbID}:`, error.message);
         res.status(500).json({message: "Internal server error"});
     }
 };
@@ -162,38 +117,28 @@ export const getMovieByImdbID = async (req: AuthenticatedRequest, res: Response)
         const imdbID = req.params.imdbID;
 
         if (!imdbID) {
-            res.status(400).json({message: "IMDb ID is required"});
+            res.status(400).json({message: "Требуется указать IMDb ID"});
             return;
         }
 
         const response = await tmdbApiClient.get(`/find/${imdbID}`, {
-            params: {external_source: "imdb_id"},
+            params: {
+                external_source: "imdb_id",
+                language: "ru-RU",
+            },
         });
 
-        const apiResponse = response.data;
-
-        const firstResult = unwrapObject(apiResponse);
-
+        const firstResult = unwrapObject(response.data);
         if (!firstResult) {
-            res.status(404).json({message: "No results found for the given IMDb ID"});
+            res.status(404).json({message: "По указанному IMDb ID ничего не найдено"});
             return;
         }
 
-        const simplifiedResult = {
-            id: firstResult.id,
-            overview: firstResult.overview,
-            vote_average: firstResult.vote_average,
-            title: firstResult.title || firstResult.name,
-            original_title: firstResult.original_title || firstResult.original_name,
-            release_date: firstResult.release_date || firstResult.first_air_date,
-            poster_path: firstResult.poster_path,
-            media_type: firstResult.media_type,
-        };
-
+        const simplifiedResult = formatShowData(firstResult);
         res.status(200).json(simplifiedResult);
     } catch (error: any) {
-        console.error("Error fetching movie by IMDb ID:", error.message);
-        res.status(500).json({message: "Internal server error"});
+        console.error("Ошибка при получении данных по IMDb ID:", error.message);
+        res.status(500).json({message: "Внутренняя ошибка сервера"});
     }
 };
 
