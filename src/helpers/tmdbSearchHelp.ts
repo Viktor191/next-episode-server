@@ -2,7 +2,9 @@ import {tmdbApiClient} from "helpers/tmdbApiClient";
 
 export const fetchMovieByDbID = async (dbID: string): Promise<any> => {
     try {
-        const response = await tmdbApiClient.get(`/movie/${dbID}`);
+        const response = await tmdbApiClient.get(`/movie/${dbID}`, {
+            params: {language: 'ru-RU'},
+        });
         const movieData = response.data;
         return {
             id: movieData.id,
@@ -22,7 +24,9 @@ export const fetchMovieByDbID = async (dbID: string): Promise<any> => {
 
 export const fetchTvByDbID = async (dbID: string): Promise<any> => {
     try {
-        const response = await tmdbApiClient.get(`/tv/${dbID}`);
+        const response = await tmdbApiClient.get(`/tv/${dbID}`, {
+            params: {language: 'ru-RU'},
+        });
         const tvData = response.data;
 
         return {

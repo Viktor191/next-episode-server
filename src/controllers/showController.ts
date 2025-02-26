@@ -24,7 +24,11 @@ export const getMovieByName = async (req: AuthenticatedRequest, res: Response): 
             return;
         }
 
-        const simplifiedResults = results.map(formatShowData);
+        const simplifiedResults = results.map((data: any) => ({
+            ...formatShowData(data),
+            media_type: "movie",
+        }));
+
         res.status(200).json(simplifiedResults);
     } catch (error: any) {
         console.error('Ошибка при поиске фильма:', error.message);
@@ -50,7 +54,11 @@ export const getTvByName = async (req: AuthenticatedRequest, res: Response): Pro
             return;
         }
 
-        const simplifiedResults = results.map(formatShowData);
+        const simplifiedResults = results.map((data: any) => ({
+            ...formatShowData(data),
+            media_type: "tv",
+        }));
+
         res.status(200).json(simplifiedResults);
     } catch (error: any) {
         console.error('Ошибка при поиске сериала:', error.message);
@@ -63,7 +71,7 @@ export const getMovieByDbID = async (req: AuthenticatedRequest, res: Response): 
         const dbID = req.params.dbID;
 
         if (!dbID) {
-            res.status(400).json({message: "TMDB ID is required"});
+            res.status(400).json({message: "Пожалуйста, укажите TMDB ID"});
             return;
         }
 
@@ -73,15 +81,18 @@ export const getMovieByDbID = async (req: AuthenticatedRequest, res: Response): 
 
         const movieData = response.data;
         if (movieData) {
-            const simplifiedResult = formatShowData(movieData);
+            const simplifiedResult = {
+                ...formatShowData(movieData),
+                media_type: "movie", // Добавлено поле media_type
+            };
             res.status(200).json(simplifiedResult);
             return;
         }
 
-        res.status(404).json({message: "No results found for the given TMDB ID"});
+        res.status(404).json({message: "❌ Фильм с указанным TMDB ID не найден"});
     } catch (error: any) {
-        console.error(`Error fetching movie with ID ${req.params.dbID}:`, error.message);
-        res.status(500).json({message: "Internal server error"});
+        console.error(`Ошибка при получении фильма с ID ${req.params.dbID}:`, error.message);
+        res.status(500).json({message: "❌ Внутренняя ошибка сервера при получении фильма"});
     }
 };
 
@@ -90,7 +101,7 @@ export const getTvByDbID = async (req: AuthenticatedRequest, res: Response): Pro
         const dbID = req.params.dbID;
 
         if (!dbID) {
-            res.status(400).json({message: "TMDB ID is required"});
+            res.status(400).json({message: "Пожалуйста, укажите TMDB ID"});
             return;
         }
 
@@ -100,15 +111,18 @@ export const getTvByDbID = async (req: AuthenticatedRequest, res: Response): Pro
 
         const tvData = response.data;
         if (tvData) {
-            const simplifiedResult = formatShowData(tvData);
+            const simplifiedResult = {
+                ...formatShowData(tvData),
+                media_type: "tv", // Добавлено поле media_type
+            };
             res.status(200).json(simplifiedResult);
             return;
         }
 
-        res.status(404).json({message: "No results found for the given TMDB ID"});
+        res.status(404).json({message: "❌ Сериал с указанным TMDB ID не найден"});
     } catch (error: any) {
-        console.error(`Error fetching TV show with ID ${req.params.dbID}:`, error.message);
-        res.status(500).json({message: "Internal server error"});
+        console.error(`Ошибка при получении сериала с ID ${req.params.dbID}:`, error.message);
+        res.status(500).json({message: "❌ Внутренняя ошибка сервера при получении сериала"});
     }
 };
 
@@ -147,7 +161,7 @@ export const addToFavorites = async (req: AuthenticatedRequest, res: Response): 
         const {type} = req.body;
         const userId = req.user?.userId;
         const {dbID} = req.params;
-
+        // console.log(`Получен запрос на добавление: dbID=${req.params.dbID}, type=${req.body.type}`);
         if (!dbID || !type) {
             res.status(400).json({error: "Пожалуйста, укажите id и тип (tv или movie)"});
             return;
@@ -189,5 +203,28 @@ export const deleteFromFavorites = async (req: AuthenticatedRequest, res: Respon
     } catch (error: any) {
         console.error("Ошибка при удалении из избранного:", error.message);
         res.status(500).json({error: "Ошибка сервера"});
+    }
+};
+
+export const getUpcomingMovies = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        const response = await tmdbApiClient.get("/movie/upcoming", {
+            params: {
+                language: "ru-RU",
+                page: 1,
+            },
+        });
+
+        const results = response.data.results;
+        if (!results || results.length === 0) {
+            res.status(404).json({error: "❌ Предстоящие фильмы не найдены"});
+            return;
+        }
+
+        const simplifiedResults = results.map(formatShowData);
+        res.status(200).json(simplifiedResults);
+    } catch (error: any) {
+        console.error("Ошибка при получении предстоящих фильмов:", error.message);
+        res.status(500).json({error: "❌ Ошибка сервера при получении предстоящих фильмов"});
     }
 };

@@ -6,7 +6,7 @@ import {
     getTvByDbID,
     getMovieByImdbID,
     addToFavorites,
-    deleteFromFavorites,
+    deleteFromFavorites, getUpcomingMovies,
 } from "controllers/showController";
 
 const router = Router();
@@ -18,5 +18,6 @@ router.get('/search/movie/:name', getMovieByName);
 router.get('/search/tv/:name', getTvByName);
 router.post('/:dbID/favorites', addToFavorites);
 router.delete('/:id/favorites', deleteFromFavorites);
+router.get("/upcoming", getUpcomingMovies);
 
 export default router;
