@@ -14,11 +14,6 @@ export const getFavorites = async (req: AuthenticatedRequest, res: Response): Pr
 
         const favorites = await ShowModel.find({userId});
 
-        if (!favorites || favorites.length === 0) {
-            res.status(404).json({error: "Избранное пусто"});
-            return;
-        }
-
         const results = await Promise.all(
             favorites.map(async (favorite) => {
                 if (favorite.type === "movie") {

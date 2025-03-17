@@ -167,7 +167,12 @@ export const addToFavorites = async (req: AuthenticatedRequest, res: Response): 
             return;
         }
 
-        const existingShow = await ShowModel.findOne({tmdbId: dbID, type});
+        /*const existingShow = await ShowModel.findOne({tmdbId: dbID, type});
+        if (existingShow) {
+            res.status(400).json({error: "Уже есть в избранном"});
+            return;
+        }*/
+        const existingShow = await ShowModel.findOne({tmdbId: dbID, type, userId});
         if (existingShow) {
             res.status(400).json({error: "Уже есть в избранном"});
             return;
