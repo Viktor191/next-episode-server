@@ -3,6 +3,7 @@ import express, {Application} from 'express';
 import cors from 'cors';
 import routes from "./routes";
 import mongoose from "mongoose";
+import "cron/checkNewSeasons";
 
 dotenv.config();
 

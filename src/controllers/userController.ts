@@ -1,4 +1,26 @@
 import {Request, Response} from "express";
+import {getUserFavorites} from "helpers/getUserFavorites";
+import {AuthenticatedRequest} from "types/request";
+
+export const getFavorites = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) {
+            res.status(400).json({error: "Требуется идентификатор пользователя userId"});
+            return;
+        }
+        const results = await getUserFavorites(userId);
+        console.log("Избранное:", results);
+        res.status(200).json(results);
+    } catch (error: any) {
+        console.error("Ошибка при получении избранного:", error.message);
+        res.status(500).json({error: "Ошибка сервера"});
+    }
+};
+
+
+/*
+import {Request, Response} from "express";
 import {ShowModel} from "models/showModel";
 import {fetchMovieByDbID, fetchTvByDbID} from "helpers/tmdbSearchHelp";
 import {AuthenticatedRequest} from "types/request";
@@ -33,3 +55,4 @@ export const getFavorites = async (req: AuthenticatedRequest, res: Response): Pr
         res.status(500).json({error: "Ошибка сервера"});
     }
 };
+*/

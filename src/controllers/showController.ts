@@ -5,6 +5,7 @@ import {ShowModel} from "models/showModel";
 import {AuthenticatedRequest} from "types/request";
 import * as console from "node:console";
 import {formatShowData} from "helpers/formatShow";
+import {login} from "controllers/authController";
 
 export const getMovieByName = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
@@ -110,6 +111,7 @@ export const getTvByDbID = async (req: AuthenticatedRequest, res: Response): Pro
         });
 
         const tvData = response.data;
+        // console.log(tvData); // Попробовать без simplifiedResult и выводить каждый сезон отдельной карточкой
         if (tvData) {
             const simplifiedResult = {
                 ...formatShowData(tvData),
@@ -167,11 +169,6 @@ export const addToFavorites = async (req: AuthenticatedRequest, res: Response): 
             return;
         }
 
-        /*const existingShow = await ShowModel.findOne({tmdbId: dbID, type});
-        if (existingShow) {
-            res.status(400).json({error: "Уже есть в избранном"});
-            return;
-        }*/
         const existingShow = await ShowModel.findOne({tmdbId: dbID, type, userId});
         if (existingShow) {
             res.status(400).json({error: "Уже есть в избранном"});
@@ -186,6 +183,7 @@ export const addToFavorites = async (req: AuthenticatedRequest, res: Response): 
         });
 
         await newFavorite.save();
+        console.log(`Добавлено в избранное: ${dbID} (${type})`);
         res.status(201).json({message: "Успешно добавлено в избранное"});
     } catch (error: any) {
         console.error("Ошибка при добавлении в избранное:", error.message);
