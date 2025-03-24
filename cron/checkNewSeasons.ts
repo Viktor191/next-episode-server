@@ -11,14 +11,14 @@ const checkForNewSeasons = async () => {
     try {
         // Получаем ВСЕ сериалы, которые есть в избранном и ещё не уведомлены
         const favoriteShows = await ShowModel.find({type: "tv", isNotified: false});
-        // console.log(favoriteShows);
+        console.log(favoriteShows);
         for (const show of favoriteShows) {
             const tmdbId = show.tmdbId;
 
             try {
                 // Делаем запрос к TMDb API, чтобы получить список сезонов
                 const response = await tmdbApiClient.get(`/tv/${tmdbId}?language=ru-RU`);
-                // console.log(`Полученные данные от TMDb для сериала с ID ${tmdbId}:`);
+                console.log(`Полученные данные от TMDb для сериала с ID ${tmdbId}:`);
                 // console.log(response.data);
                 if (!response.data?.seasons?.length) continue; // Если нет данных о сезонах, пропускаем
 
@@ -29,6 +29,7 @@ const checkForNewSeasons = async () => {
                 // Определяем переменные today и airDate
                 const today = new Date();
                 const airDate = new Date(lastSeason.air_date);
+                // console.log(`Сегодня: ${today}, дата выхода: ${airDate}`);
 
                 // Проверяем, не наступила ли его дата выхода
                 if (lastSeason.air_date && airDate <= today) {

@@ -1,5 +1,4 @@
 import {ShowModel} from "models/showModel";
-import {tmdbApiClient} from "helpers/tmdbApiClient";
 import {fetchMovieByDbID, fetchTvByDbID} from "helpers/tmdbSearchHelp";
 
 export const getUserFavorites = async (userId: string) => {
