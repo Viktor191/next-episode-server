@@ -169,6 +169,21 @@ export const addToFavorites = async (req: AuthenticatedRequest, res: Response): 
             return;
         }
 
+        let lastNotifiedSeason = 0;
+
+        if (type === "tv") {
+            try {
+                const response = await tmdbApiClient.get(`/tv/${dbID}`, {
+                    params: {language: "ru-RU"},
+                });
+                const seasons = response.data.seasons;
+                const lastSeason = seasons[seasons.length - 1];
+                lastNotifiedSeason = lastSeason?.season_number || 0;
+            } catch (error: any) {
+                console.error("Ошибка при получении данных о сезонах:", error.message);
+            }
+        }
+
         const existingShow = await ShowModel.findOne({tmdbId: dbID, type, userId});
         if (existingShow) {
             res.status(400).json({error: "Уже есть в избранном"});
@@ -180,7 +195,7 @@ export const addToFavorites = async (req: AuthenticatedRequest, res: Response): 
             type,
             userId,
             isNotified: false,
-
+            lastNotifiedSeason,
         });
 
         await newFavorite.save();
