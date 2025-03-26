@@ -180,6 +180,7 @@ export const addToFavorites = async (req: AuthenticatedRequest, res: Response): 
             type,
             userId,
             isNotified: false,
+
         });
 
         await newFavorite.save();

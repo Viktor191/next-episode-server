@@ -28,6 +28,9 @@ export const fetchTvByDbID = async (dbID: string): Promise<any> => {
             params: {language: 'ru-RU'},
         });
         const tvData = response.data;
+        const seasons = tvData.seasons;
+        const lastSeason = seasons[seasons.length - 1];
+        const lastSeasonNumber = lastSeason?.season_number;
 
         return {
             id: tvData.id,
@@ -37,7 +40,8 @@ export const fetchTvByDbID = async (dbID: string): Promise<any> => {
             original_title: tvData.original_name,
             release_date: tvData.first_air_date,
             poster_path: tvData.poster_path,
-            media_type: "tv"
+            media_type: "tv",
+            lastNotifiedSeason: lastSeasonNumber,
         };
     } catch (error: any) {
         console.error(`Error fetching TV show with ID ${dbID}:`, error.message);

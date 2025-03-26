@@ -10,7 +10,7 @@ export const getFavorites = async (req: AuthenticatedRequest, res: Response): Pr
             return;
         }
         const results = await getUserFavorites(userId);
-        console.log("Избранное:", results);
+        // console.log("Избранное:", results);
         res.status(200).json(results);
     } catch (error: any) {
         console.error("Ошибка при получении избранного:", error.message);

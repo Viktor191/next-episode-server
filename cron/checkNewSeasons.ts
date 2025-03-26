@@ -1,53 +1,86 @@
 import cron from "node-cron";
-import {tmdbApiClient} from "helpers/tmdbApiClient"; // Используем твой настроенный клиент TMDb API
+import {tmdbApiClient} from "helpers/tmdbApiClient";
 import {ShowModel} from "models/showModel";
-import * as console from "node:console"; // Модель сериалов в MongoDB
+
+// Заглушка: функция отправки уведомлений пользователю
+const sendNotificationToUser = (userId: string, shows: string[]) => {
+    console.log(`📩 Уведомление отправлено пользователю ${userId} о сериалах: ${shows.join(", ")}`);
+};
 
 // Функция для проверки новых сезонов
 const checkForNewSeasons = async () => {
     console.log("🔍 Запуск проверки новых сезонов...");
 
-
     try {
-        // Получаем ВСЕ сериалы, которые есть в избранном и ещё не уведомлены
-        const favoriteShows = await ShowModel.find({type: "tv", isNotified: false});
-        console.log(favoriteShows);
+        // Получаем все записи сериалов
+        const favoriteShows = await ShowModel.find({type: "tv"});
+
+        // Структура для хранения уведомлений по userId
+        const userNotifications: Record<string, string[]> = {};
+
+        const today = new Date();
+
         for (const show of favoriteShows) {
             const tmdbId = show.tmdbId;
+            const userId = show.userId;
+            const lastNotifiedSeason = show.lastNotifiedSeason ?? 0;
 
             try {
-                // Делаем запрос к TMDb API, чтобы получить список сезонов
                 const response = await tmdbApiClient.get(`/tv/${tmdbId}?language=ru-RU`);
-                console.log(`Полученные данные от TMDb для сериала с ID ${tmdbId}:`);
-                // console.log(response.data);
-                if (!response.data?.seasons?.length) continue; // Если нет данных о сезонах, пропускаем
+                const showName = response.data.name;
 
-                // Последний сезон
-                const lastSeason = response.data.seasons[response.data.seasons.length - 1];
-                console.log(`Последний сезон для ${response.data.name}: ${lastSeason.season_number}`);
-                // console.log(response.data)
-                // Определяем переменные today и airDate
-                const today = new Date();
-                const airDate = new Date(lastSeason.air_date);
-                // console.log(`Сегодня: ${today}, дата выхода: ${airDate}`);
+                if (!response.data?.seasons?.length) continue;
 
-                // Проверяем, не наступила ли его дата выхода
-                if (lastSeason.air_date && airDate <= today) {
-                    console.log(`🚀 Новый сезон для ${response.data.name}: ${lastSeason.season_number}!!!`);
-                    await ShowModel.updateOne({tmdbId}, {$set: {isNotified: true}});
+                const seasons = response.data.seasons;
+                const latestSeason = seasons[seasons.length - 1];
+                const latestSeasonNumber = latestSeason?.season_number ?? 0;
+                const airDate = latestSeason?.air_date ? new Date(latestSeason.air_date) : null;
+
+                // Обновляем lastNotifiedSeason, если появился новый сезон
+                if (latestSeasonNumber > lastNotifiedSeason) {
+                    console.log(`📣 Новый сезон анонсирован для ${showName}: сезон ${latestSeasonNumber}`);
+
+                    await ShowModel.updateMany(
+                        {tmdbId},
+                        {$set: {lastNotifiedSeason: latestSeasonNumber, isNotified: false}}
+                    );
+                }
+
+                // Уведомляем о выходе сезона, если дата выхода наступила и уведомление не было отправлено
+                if (airDate && airDate <= today && !show.isNotified && latestSeasonNumber > lastNotifiedSeason) {
+                    console.log(`✅ Сезон ${latestSeasonNumber} сериала ${showName} уже вышел!`);
+
+                    await ShowModel.updateMany(
+                        {tmdbId},
+                        {$set: {isNotified: true}}
+                    );
+
+                    // Добавляем в список уведомлений для конкретного пользователя
+                    if (!userNotifications[userId]) {
+                        userNotifications[userId] = [];
+                    }
+                    userNotifications[userId].push(showName);
                 }
             } catch (err) {
                 console.error(`❌ Ошибка при запросе TMDb API для ID ${tmdbId}:`, err);
             }
         }
+
+        // Отправка уведомлений (заглушка)
+        for (const [userId, shows] of Object.entries(userNotifications)) {
+            sendNotificationToUser(userId, shows);
+        }
+        console.log("🔍 Проверка новых сезонов завершена!");
     } catch (error) {
         console.error("❌ Общая ошибка при проверке новых сезонов:", error);
     }
 };
 
 // CRON-задача: проверка каждый день в 8 утра
-cron.schedule("0 8 * * *", () => { // для тестов "*/1 * * * *" раз в минуту, а в восемь утра "0 8 * * *"
+cron.schedule("0 8 * * *", () => { // для тестов "*/1 * * * *" раз в минуту, в восемь утра "0 8 * * *"
     checkForNewSeasons();
 });
 
 console.log("🕒 CRON-задача для проверки новых сезонов запущена!");
+
+// для тестов "*/1 * * * *" раз в минуту, а в восемь утра "0 8 * * *"
