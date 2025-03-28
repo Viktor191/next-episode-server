@@ -50,6 +50,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             res.status(400).json({error: 'Неверное имя пользователя или пароль'});
             return;
         }
+        if (!user.password) {
+            res.status(400).json({error: "Этот аккаунт был зарегистрирован через Google. Пожалуйста, войдите с помощью Google."});
+            return;
+        }
 
         const isPasswordValid = await bcryptjs.compare(password, user.password);
         if (!isPasswordValid) {
