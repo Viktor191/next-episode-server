@@ -4,6 +4,7 @@ import cors from 'cors';
 import routes from "./routes";
 import mongoose from "mongoose";
 import "./cron/checkNewSeasons";
+import helmet from 'helmet';
 
 dotenv.config();
 
@@ -26,6 +27,12 @@ mongoose
 
 app.use(cors());
 app.use(express.json());
+app.use(
+    helmet({
+        contentSecurityPolicy: false, // ⛔ CSP отключён для dev
+    })
+);
+
 app.use('/api', routes);
 
 app.listen(port, () => {
