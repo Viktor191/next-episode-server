@@ -227,10 +227,12 @@ export const deleteFromFavorites = async (req: AuthenticatedRequest, res: Respon
 
 export const getUpcomingMovies = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
+        const page = Number(req.query.page) || 1;
+
         const response = await tmdbApiClient.get("/movie/upcoming", {
             params: {
                 language: "ru-RU",
-                page: 1,
+                page,
             },
         });
 
