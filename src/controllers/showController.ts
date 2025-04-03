@@ -1,11 +1,10 @@
-import {Request, Response} from "express";
+import {Response} from "express";
 import {tmdbApiClient} from "helpers/tmdbApiClient";
 import {unwrapObject} from "helpers/unwrapObject";
 import {ShowModel} from "models/showModel";
 import {AuthenticatedRequest} from "types/request";
 import * as console from "node:console";
 import {formatShowData} from "helpers/formatShow";
-import {login} from "controllers/authController";
 
 export const getMovieByName = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
@@ -20,8 +19,9 @@ export const getMovieByName = async (req: AuthenticatedRequest, res: Response): 
         });
 
         const results = response.data.results;
+        // console.log(results); // Для отладки
         if (!results || results.length === 0) {
-            res.status(404).json({error: 'Ничего не найдено'});
+            res.status(200).json([]);
             return;
         }
 
@@ -51,7 +51,7 @@ export const getTvByName = async (req: AuthenticatedRequest, res: Response): Pro
 
         const results = response.data.results;
         if (!results || results.length === 0) {
-            res.status(404).json({error: 'Ничего не найдено'});
+            res.status(200).json([]);
             return;
         }
 
