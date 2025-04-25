@@ -45,7 +45,8 @@ export const checkForNewSeasons = async (): Promise<void> => {
                     if (!userNotifications[userId]) {
                         userNotifications[userId] = [];
                     }
-                    userNotifications[userId].push(showName);
+                    //userNotifications[userId].push(showName);
+                    userNotifications[userId].push(`${showName} (сезон ${latestSeasonNumber})`);
                 }
             } catch (err) {
                 console.error(`❌ Ошибка при запросе TMDb API для ID ${tmdbId}:`, err);
