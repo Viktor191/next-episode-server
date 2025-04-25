@@ -10,9 +10,6 @@ export const sendNotificationToUser = async (
     userId: string,
     shows: string[]
 ): Promise<void> => {
-    console.log(
-        `Уведомление отправлено пользователю ${userId} о сериалах: ${shows.join(", ")}`
-    );
 
     const user = await UserModel.findById(userId);
     if (!user?.email) {
@@ -27,7 +24,7 @@ export const sendNotificationToUser = async (
     <ul>
       ${shows.map((s) => `<li>${s}</li>`).join("\n      ")}
     </ul>
-    <p><a href="${CLIENT_URL}/upcoming">Смотреть расписание</a></p>
+    <p><a href="${CLIENT_URL}/upcoming">Открыть nextepisode.top</a></p>
   `;
     console.log(`Уведомление отправлено пользователю ${userId} о сериалах: ${shows.join(", ")}`);
     try {

@@ -4,60 +4,66 @@ import {sendNotificationToUser} from "services/notifications";
 
 export const checkForNewSeasons = async (): Promise<void> => {
     console.log("Запуск проверки новых сезонов...");
-
     try {
         const favoriteShows = await ShowModel.find({type: "tv"});
-        const userNotifications: Record<string, string[]> = {};
-        const today = new Date();
+        const tmdbIds = Array.from(new Set(favoriteShows.map(s => s.tmdbId)));
 
-        for (const show of favoriteShows) {
-            const {tmdbId, userId} = show;
-            const lastNotifiedSeason = show.lastNotifiedSeason ?? 0;
+        for (const tmdbId of tmdbIds) {
+            let showName = "";
+            let seasons = [];
 
             try {
-                const response = await tmdbApiClient.get(`/tv/${tmdbId}?language=ru-RU`);
-                const showName = response.data.name;
+                // 1) Получаем данные от TMDb
+                const resp = await tmdbApiClient.get(`/tv/${tmdbId}?language=ru-RU`);
+                showName = resp.data.name || resp.data.original_name;
+                seasons = resp.data.seasons;
+            } catch (err) {
+                console.warn(`❌ Не удалось получить данные для TMDB ID: ${tmdbId}`, err);
+                continue; // переход к следующему сериалу
+            }
 
-                if (!response.data?.seasons?.length) continue;
+            if (!seasons.length) continue;
 
-                const seasons = response.data.seasons;
-                const latestSeason = seasons[seasons.length - 1];
-                const latestSeasonNumber = latestSeason?.season_number ?? 0;
-                const airDate = latestSeason?.air_date ? new Date(latestSeason.air_date) : null;
+            const latest = seasons[seasons.length - 1];
+            const latestNum = latest.season_number;
+            const airDate = latest.air_date ? new Date(latest.air_date) : null;
+            const today = new Date();
 
-                if (latestSeasonNumber > lastNotifiedSeason) {
-                    console.log(`Новый сезон анонсирован для ${showName}: сезон ${latestSeasonNumber}`);
+            // 2) Обновляем БД для всех устаревших записей
+            await ShowModel.updateMany(
+                {tmdbId, lastNotifiedSeason: {$lt: latestNum}},
+                {$set: {lastNotifiedSeason: latestNum, isNotified: false}}
+            );
 
-                    await ShowModel.updateMany(
-                        {tmdbId},
-                        {$set: {lastNotifiedSeason: latestSeasonNumber, isNotified: false}}
-                    );
+            // 3) Если сезон вышел — собираем список тех, кто ещё не получил письмо
+            if (airDate && airDate <= today) {
+                const toNotify = await ShowModel.find({
+                    tmdbId,
+                    lastNotifiedSeason: latestNum,
+                    isNotified: false,
+                });
+
+                console.log(`К уведомлению подготовлены ${toNotify.length} записей для ${showName} (сезон ${latestNum})`);
+
+                const userNotifications: Record<string, string[]> = {};
+                for (const show of toNotify) {
+                    userNotifications[show.userId] ??= [];
+                    userNotifications[show.userId].push(`${showName} (сезон ${latestNum})`);
                 }
 
-                if (airDate && airDate <= today && !show.isNotified && latestSeasonNumber > lastNotifiedSeason) {
-                    console.log(`\u2705 Сезон ${latestSeasonNumber} сериала ${showName} уже вышел!`);
-
+                // 4) Отправляем и отмечаем
+                for (const [userId, shows] of Object.entries(userNotifications)) {
+                    await sendNotificationToUser(userId, shows);
                     await ShowModel.updateMany(
-                        {tmdbId},
+                        {tmdbId, userId},
                         {$set: {isNotified: true}}
                     );
-
-                    if (!userNotifications[userId]) {
-                        userNotifications[userId] = [];
-                    }
-                    //userNotifications[userId].push(showName);
-                    userNotifications[userId].push(`${showName} (сезон ${latestSeasonNumber})`);
                 }
-            } catch (err) {
-                console.error(`❌ Ошибка при запросе TMDb API для ID ${tmdbId}:`, err);
             }
         }
 
-        for (const [userId, shows] of Object.entries(userNotifications)) {
-            sendNotificationToUser(userId, shows);
-        }
         console.log("Проверка новых сезонов завершена!");
-    } catch (error) {
-        console.error("❌ Общая ошибка при проверке новых сезонов:", error);
+    } catch (err) {
+        console.error("❌ Общая ошибка при проверке новых сезонов:", err);
     }
 };
