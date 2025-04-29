@@ -5,6 +5,7 @@ interface IUser extends Document {
     password?: string; // <-- пароль может отсутствовать если пользователь зарегистрирован через Google
     email?: string;
     telegram?: string;
+    notify?: boolean;
     resetPasswordToken?: string;
     resetPasswordExpires?: Date;
 }
@@ -14,6 +15,7 @@ const UserSchema = new Schema<IUser>({
     password: {type: String},
     email: {type: String, unique: true, sparse: true},
     telegram: {type: String, unique: true, sparse: true},
+    notify: {type: Boolean, default: true},
     resetPasswordToken: {type: String},
     resetPasswordExpires: {type: Date},
 });

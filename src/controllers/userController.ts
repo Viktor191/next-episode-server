@@ -34,7 +34,7 @@ export const getMe = async (req: AuthenticatedRequest, res: Response): Promise<v
 
 export const updateMe = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     const userId = req.user?.userId;
-    const {email, telegram} = req.body;
+    const {email, telegram, notify} = req.body;
 
     try {
         const user = await UserModel.findById(userId);
@@ -45,30 +45,29 @@ export const updateMe = async (req: AuthenticatedRequest, res: Response): Promis
 
         if (email !== undefined) user.email = email;
         if (telegram !== undefined) user.telegram = telegram;
+        if (notify !== undefined) user.notify = notify;
 
         await user.save();
 
         res.status(200).json({message: "Профиль обновлён"});
     } catch (err: unknown) {
         // Обработка ошибки дублирования уникального значения
-        if (
-            err &&
-            typeof err === "object" &&
-            "code" in err &&
-            (err as any).code === 11000
-        ) {
-            const field = Object.keys((err as any).keyPattern || {})[0];
-            const message =
-                field === "email"
-                    ? "Этот email уже используется другим пользователем"
-                    : field === "telegram"
-                        ? "Этот Telegram уже используется другим пользователем"
-                        : "Дублирование уникального значения";
-            res.status(400).json({error: message});
+        if (err && typeof err === "object" && "code" in err) {
+            const mongoError = err as { code: number; keyPattern?: Record<string, unknown> };
 
-            return;
+            if (mongoError.code === 11000 && mongoError.keyPattern) {
+                const field = Object.keys(mongoError.keyPattern)[0];
+                const message =
+                    field === "email"
+                        ? "Этот email уже используется другим пользователем"
+                        : field === "telegram"
+                            ? "Этот Telegram уже используется другим пользователем"
+                            : "Дублирование уникального значения";
+
+                res.status(400).json({error: message});
+                return;
+            }
         }
-
         console.error("Ошибка при обновлении профиля:", err);
         res.status(500).json({error: "Ошибка при обновлении профиля"});
     }
