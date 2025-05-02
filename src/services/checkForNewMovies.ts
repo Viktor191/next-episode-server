@@ -1,52 +1,59 @@
 import {tmdbApiClient} from "helpers/tmdbApiClient";
 import {ShowModel} from "models/showModel";
 import {sendNotificationToUser} from "services/notifications";
+import {debug, info, error as logError} from "helpers/logger";
 
 export const checkForNewMovies = async (): Promise<void> => {
-    console.log("Запуск проверки выхода новых фильмов...");
+    info("Запуск проверки выхода новых фильмов...");
 
     try {
-        // Получаем все избранные фильмы, фильтруем type="movie" и только те, по которым не отправляли уведомление
         const favoriteMovies = await ShowModel.find({type: "movie", isNotified: false});
-
-        const today = new Date().toISOString().split("T")[0]; // строка YYYY-MM-DD
+        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
         const userNotifications: Record<string, string[]> = {};
 
         for (const show of favoriteMovies) {
             const {tmdbId, userId} = show;
             try {
-                // Запрашиваем у TMDb данные фильма
                 const response = await tmdbApiClient.get(`/movie/${tmdbId}?language=ru-RU`);
-                const title = response.data.title;
-                const releaseDate = response.data.release_date; // формат YYYY-MM-DD
+                const title = response.data.title as string;
+                const releaseDate = response.data.release_date as string; // YYYY-MM-DD
 
-                // Если фильм выходит сегодня — готовим уведомление
                 if (releaseDate === today) {
-                    console.log(`✅ Фильм "${title}" выходит сегодня!`);
+                    debug(`Фильм "${title}" выходит сегодня!`);
                     userNotifications[userId] ??= [];
                     userNotifications[userId].push(`"${title}"`);
                 }
-            } catch (err) {
-                console.error(`❌ Ошибка при запросе TMDb для фильма ID ${show.tmdbId}:`, err);
+            } catch (err: unknown) {
+                if (err instanceof Error) {
+                    logError(`Ошибка при запросе TMDb для фильма ID ${tmdbId}:`, err.message);
+                } else {
+                    logError(`Неизвестная ошибка при запросе TMDb для фильма ID ${tmdbId}:`, err);
+                }
             }
         }
 
-        // Отправляем письма и помечаем в базе как уведомлённые
         for (const [userId, titles] of Object.entries(userNotifications)) {
             try {
                 await sendNotificationToUser(userId, titles);
-                // Помечаем все релизы этого пользователя как отправленные
                 await ShowModel.updateMany(
                     {userId, type: "movie", isNotified: false},
                     {$set: {isNotified: true}}
                 );
-            } catch (err) {
-                console.error(`❌ Ошибка при отправке уведомления пользователю ${userId}:`, err);
+            } catch (err: unknown) {
+                if (err instanceof Error) {
+                    logError(`Ошибка при отправке уведомления пользователю ${userId}:`, err.message);
+                } else {
+                    logError(`Неизвестная ошибка при отправке уведомления пользователю ${userId}:`, err);
+                }
             }
         }
 
-        console.log("Проверка новых фильмов завершена!");
-    } catch (err) {
-        console.error("❌ Общая ошибка при проверке новых фильмов:", err);
+        info("Проверка новых фильмов завершена!");
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            logError("Общая ошибка при проверке новых фильмов:", err.message);
+        } else {
+            logError("Неизвестная общая ошибка при проверке новых фильмов:", err);
+        }
     }
 };

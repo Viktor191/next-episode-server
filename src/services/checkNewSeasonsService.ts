@@ -1,25 +1,30 @@
 import {tmdbApiClient} from "helpers/tmdbApiClient";
 import {ShowModel} from "models/showModel";
 import {sendNotificationToUser} from "services/notifications";
+import {info, warn, error as logError} from "helpers/logger";
 
 export const checkForNewSeasons = async (): Promise<void> => {
-    console.log("Запуск проверки новых сезонов...");
+    info("Запуск проверки новых сезонов...");
+
     try {
         const favoriteShows = await ShowModel.find({type: "tv"});
         const tmdbIds = Array.from(new Set(favoriteShows.map(s => s.tmdbId)));
 
         for (const tmdbId of tmdbIds) {
             let showName = "";
-            let seasons = [];
+            let seasons: Array<{ season_number: number; air_date?: string }> = [];
 
             try {
-                // 1) Получаем данные от TMDb
                 const resp = await tmdbApiClient.get(`/tv/${tmdbId}?language=ru-RU`);
                 showName = resp.data.name || resp.data.original_name;
                 seasons = resp.data.seasons;
-            } catch (err) {
-                console.warn(`❌ Не удалось получить данные для TMDB ID: ${tmdbId}`, err);
-                continue; // переход к следующему сериалу
+            } catch (err: unknown) {
+                if (err instanceof Error) {
+                    warn(`Не удалось получить данные для TMDB ID ${tmdbId}:`, err.message);
+                } else {
+                    warn(`Неизвестная ошибка при получении данных для TMDB ID ${tmdbId}:`, err);
+                }
+                continue;
             }
 
             if (!seasons.length) continue;
@@ -29,13 +34,11 @@ export const checkForNewSeasons = async (): Promise<void> => {
             const airDate = latest.air_date ? new Date(latest.air_date) : null;
             const today = new Date();
 
-            // 2) Обновляем БД для всех устаревших записей
             await ShowModel.updateMany(
                 {tmdbId, lastNotifiedSeason: {$lt: latestNum}},
                 {$set: {lastNotifiedSeason: latestNum, isNotified: false}}
             );
 
-            // 3) Если сезон вышел — собираем список тех, кто ещё не получил письмо
             if (airDate && airDate <= today) {
                 const toNotify = await ShowModel.find({
                     tmdbId,
@@ -43,7 +46,7 @@ export const checkForNewSeasons = async (): Promise<void> => {
                     isNotified: false,
                 });
 
-                console.log(`К уведомлению подготовлены ${toNotify.length} записей для ${showName} (сезон ${latestNum})`);
+                info(`К уведомлению подготовлены ${toNotify.length} записей для ${showName} (сезон ${latestNum})`);
 
                 const userNotifications: Record<string, string[]> = {};
                 for (const show of toNotify) {
@@ -51,19 +54,30 @@ export const checkForNewSeasons = async (): Promise<void> => {
                     userNotifications[show.userId].push(`${showName} (сезон ${latestNum})`);
                 }
 
-                // 4) Отправляем и отмечаем
                 for (const [userId, shows] of Object.entries(userNotifications)) {
-                    await sendNotificationToUser(userId, shows);
-                    await ShowModel.updateMany(
-                        {tmdbId, userId},
-                        {$set: {isNotified: true}}
-                    );
+                    try {
+                        await sendNotificationToUser(userId, shows);
+                        await ShowModel.updateMany(
+                            {tmdbId, userId},
+                            {$set: {isNotified: true}}
+                        );
+                    } catch (err: unknown) {
+                        if (err instanceof Error) {
+                            logError(`Ошибка при отправке уведомления пользователю ${userId}:`, err.message);
+                        } else {
+                            logError(`Неизвестная ошибка при отправке уведомления пользователю ${userId}:`, err);
+                        }
+                    }
                 }
             }
         }
 
-        console.log("Проверка новых сезонов завершена!");
-    } catch (err) {
-        console.error("❌ Общая ошибка при проверке новых сезонов:", err);
+        info("Проверка новых сезонов завершена!");
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            logError("Общая ошибка при проверке новых сезонов:", err.message);
+        } else {
+            logError("Неизвестная общая ошибка при проверке новых сезонов:", err);
+        }
     }
 };

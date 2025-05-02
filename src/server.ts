@@ -1,10 +1,11 @@
 import dotenv from 'dotenv';
 import express, {Application} from 'express';
 import cors from 'cors';
-import routes from "./routes";
-import mongoose from "mongoose";
-import "./cron/checkNewSeasons";
+import routes from './routes';
+import mongoose from 'mongoose';
+import './cron/checkNewSeasons';
 import helmet from 'helmet';
+import {info, error as logError} from 'helpers/logger';
 
 dotenv.config();
 
@@ -19,22 +20,26 @@ if (!mongoUri) {
 mongoose
     .connect(mongoUri, {})
     .then(() => {
-        console.log('Connected to MongoDB');
+        info('Подключено к MongoDB');
     })
-    .catch((error) => {
-        console.error('Error connecting to MongoDB', error);
+    .catch((err: unknown) => {
+        if (err instanceof Error) {
+            logError('Ошибка подключения к MongoDB:', err.message);
+        } else {
+            logError('Неизвестная ошибка подключения к MongoDB:', err);
+        }
     });
 
 app.use(cors());
 app.use(express.json());
 app.use(
     helmet({
-        contentSecurityPolicy: false, // ⛔ CSP отключён для dev
+        contentSecurityPolicy: false, // CSP отключён для dev
     })
 );
 
 app.use('/api', routes);
 
 app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+    info(`Сервер запущен http://localhost:${port}`);
 });

@@ -1,8 +1,11 @@
 import {ShowModel} from "models/showModel";
 import {fetchMovieByDbID, fetchTvByDbID} from "helpers/tmdbSearchHelp";
+import {error as logError} from "helpers/logger";
 
-export const getUserFavorites = async (userId: string) => {
-    if (!userId) throw new Error("Необходим идентификатор пользователя");
+export const getUserFavorites = async (userId: string): Promise<ReturnType<typeof fetchMovieByDbID>[]> => {
+    if (!userId) {
+        throw new Error("Необходим идентификатор пользователя");
+    }
 
     const favorites = await ShowModel.find({userId});
 
@@ -11,15 +14,26 @@ export const getUserFavorites = async (userId: string) => {
             try {
                 if (favorite.type === "movie") {
                     return await fetchMovieByDbID(favorite.tmdbId);
-                } else if (favorite.type === "tv") {
+                } else {
                     return await fetchTvByDbID(favorite.tmdbId);
                 }
-            } catch (error) {
-                console.error(`Ошибка при получении данных для ${favorite.type} (ID: ${favorite.tmdbId})`, error);
+            } catch (err: unknown) {
+                if (err instanceof Error) {
+                    logError(
+                        `Ошибка при получении данных для ${favorite.type} (ID: ${favorite.tmdbId}):`,
+                        err.message
+                    );
+                } else {
+                    logError(
+                        `Неизвестная ошибка при получении данных для ${favorite.type} (ID: ${favorite.tmdbId}):`,
+                        err
+                    );
+                }
                 return null;
             }
         })
     );
 
-    return results.filter(Boolean);
+    // Фильтруем возможные null
+    return results.filter((item): item is NonNullable<typeof item> => Boolean(item));
 };

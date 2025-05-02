@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import {z} from "zod";
 import crypto from "crypto";
 import nodemailer from "nodemailer";
+import {error as logError, info} from "helpers/logger";
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS || '10', 10);
@@ -14,14 +15,19 @@ const EMAIL_FROM = process.env.EMAIL_FROM;
 const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD;
 
 const userInputSchema = z.object({
-    username: z.string().min(3, "Имя пользователя должно содержать минимум 3 символа").max(30, "Имя пользователя не может превышать 30 символов"),
+    username: z
+        .string()
+        .min(3, "Имя пользователя должно содержать минимум 3 символа")
+        .max(30, "Имя пользователя не может превышать 30 символов"),
     password: z.string().min(6, "Пароль должен содержать минимум 6 символов"),
 });
 
-export const register = async (req: Request, res: Response): Promise<void> => {
+export const register = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
         const parsedInput = userInputSchema.parse(req.body);
-
         const {username, password} = parsedInput;
 
         const existingUser = await UserModel.findOne({username});
@@ -31,24 +37,28 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         }
 
         const hashedPassword = await bcryptjs.hash(password, SALT_ROUNDS);
-        const newUser = new UserModel({username, password: hashedPassword});
-        await newUser.save();
+        await new UserModel({username, password: hashedPassword}).save();
 
         res.status(201).json({message: 'Пользователь зарегистрирован'});
-    } catch (error: any) {
-        if (error instanceof z.ZodError) {
-            res.status(400).json({error: error.errors.map(e => e.message).join(', ')});
+    } catch (err: unknown) {
+        if (err instanceof z.ZodError) {
+            res.status(400).json({error: err.errors.map(e => e.message).join(', ')});
+        } else if (err instanceof Error) {
+            logError('Ошибка регистрации:', err.message);
+            res.status(500).json({error: 'Ошибка сервера'});
         } else {
-            console.error('Ошибка регистрации:', error.message);
+            logError('Неизвестная ошибка при регистрации:', err);
             res.status(500).json({error: 'Ошибка сервера'});
         }
     }
 };
 
-export const login = async (req: Request, res: Response): Promise<void> => {
+export const login = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
         const parsedInput = userInputSchema.parse(req.body);
-
         const {username, password} = parsedInput;
 
         const user = await UserModel.findOne({username});
@@ -57,7 +67,9 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             return;
         }
         if (!user.password) {
-            res.status(400).json({error: "Этот аккаунт был зарегистрирован через Google. Пожалуйста, войдите с помощью Google."});
+            res.status(400).json({
+                error: "Этот аккаунт был зарегистрирован через Google. Пожалуйста, войдите с помощью Google."
+            });
             return;
         }
 
@@ -74,11 +86,14 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         );
 
         res.status(200).json({message: 'Успешная авторизация', token});
-    } catch (error: any) {
-        if (error instanceof z.ZodError) {
-            res.status(400).json({error: error.errors.map(e => e.message).join(', ')});
+    } catch (err: unknown) {
+        if (err instanceof z.ZodError) {
+            res.status(400).json({error: err.errors.map(e => e.message).join(', ')});
+        } else if (err instanceof Error) {
+            logError('Ошибка авторизации:', err.message);
+            res.status(500).json({error: 'Ошибка сервера'});
         } else {
-            console.error('Ошибка авторизации:', error.message);
+            logError('Неизвестная ошибка при авторизации:', err);
             res.status(500).json({error: 'Ошибка сервера'});
         }
     }
@@ -92,26 +107,20 @@ export const forgotpassword = async (
 
     try {
         const user = await UserModel.findOne({email});
-
         if (!user) {
             res.status(404).json({error: "Пользователь с таким email не найден"});
-            return; // ← возвращаем void после ответа
+            return;
         }
 
         const token = crypto.randomBytes(32).toString("hex");
         user.resetPasswordToken = token;
-        user.resetPasswordExpires = new Date(Date.now() + 3600 * 1000); // 1 час
-
+        user.resetPasswordExpires = new Date(Date.now() + 3600 * 1000);
         await user.save();
 
         const resetUrl = `${CLIENT_URL}/reset-password/${token}`;
-
         const transporter = nodemailer.createTransport({
             service: "gmail",
-            auth: {
-                user: EMAIL_FROM,
-                pass: EMAIL_PASSWORD,
-            },
+            auth: {user: EMAIL_FROM, pass: EMAIL_PASSWORD},
         });
 
         await transporter.sendMail({
@@ -127,12 +136,13 @@ export const forgotpassword = async (
         });
 
         res.json({message: "Ссылка для восстановления отправлена на email"});
-        return; // ← возвращаем void после успешного ответа
-
-    } catch (err) {
-        console.error(err);
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            logError('Ошибка при отправке письма:', err.message);
+        } else {
+            logError('Неизвестная ошибка при отправке письма:', err);
+        }
         res.status(500).json({error: "Ошибка при отправке письма"});
-        return; // ← возвращаем void после ошибки
     }
 };
 
@@ -140,7 +150,6 @@ export const resetPassword = async (
     req: Request,
     res: Response
 ): Promise<void> => {
-    // читаем и токен, и новый пароль из тела запроса
     const {token, password} = req.body;
 
     try {
@@ -148,21 +157,23 @@ export const resetPassword = async (
             resetPasswordToken: token,
             resetPasswordExpires: {$gt: new Date()},
         });
-
         if (!user) {
             res.status(400).json({error: "Ссылка недействительна или истекла"});
             return;
         }
 
-        const hashedPassword = await bcryptjs.hash(password, SALT_ROUNDS);
-        user.password = hashedPassword;
+        user.password = await bcryptjs.hash(password, SALT_ROUNDS);
         user.resetPasswordToken = undefined;
         user.resetPasswordExpires = undefined;
         await user.save();
 
         res.json({message: "Пароль успешно обновлён"});
-    } catch (err) {
-        console.error(err);
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            logError('Ошибка при обновлении пароля:', err.message);
+        } else {
+            logError('Неизвестная ошибка при обновлении пароля:', err);
+        }
         res.status(500).json({error: "Ошибка при обновлении пароля"});
     }
 };

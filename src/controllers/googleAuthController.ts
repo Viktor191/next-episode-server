@@ -2,10 +2,14 @@ import {Request, Response} from "express";
 import {OAuth2Client} from "google-auth-library";
 import {UserModel} from "models/userModel";
 import jwt from "jsonwebtoken";
+import {error as logError, info} from "helpers/logger";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-export const googleLogin = async (req: Request, res: Response): Promise<void> => {
+export const googleLogin = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
         const {credential} = req.body;
 
@@ -32,18 +36,24 @@ export const googleLogin = async (req: Request, res: Response): Promise<void> =>
         if (!user) {
             user = await UserModel.create({
                 username: email,
-                password: "", // пароля нет — логин через Google
+                password: "", // пароль не хранится — вход через Google
             });
+            info(`Создан новый пользователь через Google: ${email}`);
         }
 
-        // Генерируем JWT токен или сессию
-        const token = jwt.sign({userId: user._id}, process.env.JWT_SECRET!, {
-            expiresIn: "7d",
-        });
+        const token = jwt.sign(
+            {userId: user._id},
+            process.env.JWT_SECRET as string,
+            {expiresIn: "7d"}
+        );
 
         res.status(200).json({token});
-    } catch (err) {
-        console.error("Ошибка при входе через Google:", err);
+    } catch (err: unknown) {
+        if (err instanceof Error) {
+            logError("Ошибка при входе через Google:", err.message);
+        } else {
+            logError("Неизвестная ошибка при входе через Google:", err);
+        }
         res.status(500).json({error: "Ошибка сервера"});
     }
 };
