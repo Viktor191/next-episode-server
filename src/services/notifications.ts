@@ -1,23 +1,17 @@
-import {sendMail} from "helpers/mailService";
-import {UserModel} from "models/userModel";
-import {debug, warn, info, error as logError} from "helpers/logger";
+import {sendMail} from 'helpers/mailService';
+import {UserModel} from 'models/userModel';
+import {debug, warn, info, error as logError} from 'helpers/logger';
 
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
-/**
- * Отправляет пользователю уведомление о новых сезонах и фильмах.
- */
-export const sendNotificationToUser = async (
-    userId: string,
-    shows: string[]
-): Promise<void> => {
+export const sendNotificationToUser = async (userId: string, shows: string[]): Promise<void> => {
     const user = await UserModel.findById(userId);
 
     // Если у пользователя нет email или уведомления отключены — выходим
     if (!user?.email || user.notify === false) {
         warn(
             `Пропускаем уведомление для пользователя ${userId}. ` +
-            `email: ${user?.email}, notify: ${user?.notify}`
+            `email: ${user?.email}, notify: ${user?.notify}`,
         );
         return;
     }
@@ -27,11 +21,15 @@ export const sendNotificationToUser = async (
     <h2 style="color: #ee8b05;">📢 Новинки в вашем избранном!</h2>
     <p>У вас есть обновления в любимых сериалах и фильмах:</p>
     <ul style="padding-left: 20px; margin-top: 16px; margin-bottom: 16px;">
-      ${shows.map(show => `
+      ${shows
+        .map(
+            show => `
         <li style="margin-bottom: 8px;">
           <span style="font-weight: bold;">${show}</span>
         </li>
-      `).join('')}
+      `,
+        )
+        .join('')}
     </ul>
     <p style="margin-top: 24px;">
       🔗 <a href="${CLIENT_URL}/upcoming" style="color: #ee8b05; text-decoration: none;">
@@ -45,12 +43,12 @@ export const sendNotificationToUser = async (
   </div>
 `;
 
-    info(`Готовим уведомление пользователю ${userId}: ${shows.join(", ")}`);
+    info(`Готовим уведомление пользователю ${userId}: ${shows.join(', ')}`);
 
     try {
         const result = await sendMail({
             to: user.email,
-            subject: "Новинки в ваших сериалах и фильмах!",
+            subject: 'Новинки в ваших сериалах и фильмах!',
             html,
         });
         debug(`Письмо отправлено: ${JSON.stringify(result)}`);

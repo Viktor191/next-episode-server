@@ -1,11 +1,11 @@
-import {JwtPayload} from "jsonwebtoken";
-import {Request} from "express";
+import { JwtPayload } from 'jsonwebtoken';
+import { Request } from 'express';
 
 export interface AuthenticatedRequest extends Request {
-    user?: MyTokenPayload;
+  user?: MyTokenPayload;
 }
 
 export interface MyTokenPayload extends JwtPayload {
-    userId: string;
-    username: string;
+  userId: string;
+  username: string;
 }

@@ -1,8 +1,8 @@
-import {Router} from 'express';
-import showRoutes from "routes/showRoutes";
-import authRoutes from "routes/authRoutes";
-import userRoutes from "routes/userRoutes";
-import {authenticateToken} from "middlewares/authenticateToken";
+import { Router } from 'express';
+import showRoutes from 'routes/showRoutes';
+import authRoutes from 'routes/authRoutes';
+import userRoutes from 'routes/userRoutes';
+import { authenticateToken } from 'middlewares/authenticateToken';
 
 const router = Router();
 
