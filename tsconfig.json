@@ -9,9 +9,6 @@
   },
   "compilerOptions": {
     "baseUrl": ".",
-    "lib": [
-      "esnext"
-    ],
     "paths": {
       "controllers/*": [
         "./src/controllers/*"

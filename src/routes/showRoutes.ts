@@ -1,13 +1,14 @@
-import { Router } from 'express';
+import {Router} from 'express';
+
 import {
-  getMovieByName,
-  getTvByName,
-  getMovieByDbID,
-  getTvByDbID,
-  getMovieByImdbID,
-  addToFavorites,
-  deleteFromFavorites,
-  getUpcomingMovies,
+    getMovieByName,
+    getTvByName,
+    getMovieByDbID,
+    getTvByDbID,
+    getMovieByImdbID,
+    addToFavorites,
+    deleteFromFavorites,
+    getUpcomingMovies,
 } from 'controllers/showController';
 
 const router = Router();
