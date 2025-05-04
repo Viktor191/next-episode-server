@@ -43,6 +43,15 @@
     },
     "target": "es6",
     "module": "commonjs",
+    "lib": [
+      "ES2020"
+    ],
+    "types": [
+      "node"
+    ],
+    "typeRoots": [
+      "node_modules/@types"
+    ],
     "outDir": "./dist",
     "strict": true,
     "esModuleInterop": true,
